@@ -119,7 +119,7 @@ _io_pvt = [   # PVT-generation I/Os
         Subsignal("cipo", Pins("P16"), IOStandard("LVCMOS18")),
         Subsignal("copi", Pins("N18"), IOStandard("LVCMOS18"), Misc("SLEW=SLOW"), Misc("DRIVE=4")),
         Subsignal("sclk", Pins("R16"), IOStandard("LVCMOS18"), Misc("SLEW=SLOW"), Misc("DRIVE=4")),
-        Subsignal("hold", Pins("L13"), IOStandard("LVCMOS18")),
+        Subsignal("hold", Pins("L13"), IOStandard("LVCMOS18")), # New function in PVT from DVT, but same physical wiring
      ),
     ("com_irq", 0, Pins("M16"), IOStandard("LVCMOS18")),
 
@@ -345,6 +345,54 @@ _io_fw = [
 
     # Top-side internal FPC header
     ("gpio", 0, Pins("F14 F15 E16 G15 H15 G16 F18 E18"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),  # PVT
+]
+
+_io_dvt = [
+    ("analog", 0,
+     Subsignal("usbdet_p", Pins("C3"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("usbdet_n", Pins("A3"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("vbus_div", Pins("C4"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("noise0", Pins("C5"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("noise1", Pins("A8"), IOStandard("LVCMOS33")),  # DVT
+     # diff grounds
+     Subsignal("usbdet_p_n", Pins("B3"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("usbdet_n_n", Pins("A2"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("vbus_div_n", Pins("B4"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("noise0_n", Pins("B5"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("noise1_n", Pins("A7"), IOStandard("LVCMOS33")),  # DVT
+     # dedicated pins (no I/O standard applicable)
+     Subsignal("ana_vn", Pins("K9")),
+     Subsignal("ana_vp", Pins("J10")),
+     ),
+
+    ("noise", 0,
+     Subsignal("noisebias_on", Pins("E17"), IOStandard("LVCMOS33")),  # DVT
+     # Noise generator
+     Subsignal("noise_on", Pins("P14 R13"), IOStandard("LVCMOS18")),
+    ),
+
+    # Power control signals
+    ("power", 0,
+     Subsignal("audio_on", Pins("B7"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("fpga_sys_on", Pins("A5"), IOStandard("LVCMOS33")),  # DVT
+     Subsignal("allow_up5k_n", Pins("B14"), IOStandard("LVCMOS33")),
+     Subsignal("pwr_s0", Pins("U6"), IOStandard("LVCMOS18")),
+     # Subsignal("pwr_s1",       Pins("L13"), IOStandard("LVCMOS18")),  # DVT # PVT convert to "com hold"
+     # vibe motor
+     Subsignal("vibe_on", Pins("H15"), IOStandard("LVCMOS33")),  # PVT
+     # reset EC
+     Subsignal("reset_ec", Pins("M6"), IOStandard("LVCMOS18")),
+     # PVT -- allow FPGA to recover crashed EC (invert polarity)
+     # USB_CC DFP attach
+     Subsignal("cc_id", Pins("D18"), IOStandard("LVCMOS33")),  # DVT
+     # turn on the UP5K in case we are woken up by RTC
+     Subsignal("up5k_on", Pins("E18"), IOStandard("LVCMOS33")),  # DVT -- T_TO_U_ON
+     Misc("SLEW=SLOW"),
+     Misc("DRIVE=4"),
+     ),
+
+    # Top-side internal FPC header
+    ("gpio", 0, Pins("F14 F15 E16 G15 G16 G13 F18 G18"), IOStandard("LVCMOS33"), Misc("SLEW=SLOW")),  # DVT + dummies to make width the same
 ]
 
 _io_xous_modnoise = [
@@ -863,20 +911,21 @@ class BtPower(Module, AutoCSR, AutoDoc):
             self.comb += pads.pwr_s0_replica.eq(s0 & ~self.powerdown_override)
 
         # Hi-Z driver is less glitchy, prevents boost mode power from re-glitching the power on during power off transitions
-        self.boost_ts = TSTriple(1)
-        self.specials += self.boost_ts.get_tristate(pads.boostmode)
-        self.comb += [
-            self.boost_ts.oe.eq(self.power.fields.boostmode),
-            self.boost_ts.o.eq(self.power.fields.boostmode)
-        ]
+        if revision != 'dvt':
+            self.boost_ts = TSTriple(1)
+            self.specials += self.boost_ts.get_tristate(pads.boostmode)
+            self.comb += [
+                self.boost_ts.oe.eq(self.power.fields.boostmode),
+                self.boost_ts.o.eq(self.power.fields.boostmode)
+            ]
 
-        # Hi-Z driver is less glitchy and less likely to trigger the self destruct mechanism on power glitches
-        self.sd_ts = TSTriple(1)
-        self.specials += self.sd_ts.get_tristate(pads.selfdestruct)
-        self.comb += [
-            self.sd_ts.oe.eq(self.power.fields.selfdestruct),
-            self.sd_ts.o.eq(self.power.fields.selfdestruct),
-        ]
+            # Hi-Z driver is less glitchy and less likely to trigger the self destruct mechanism on power glitches
+            self.sd_ts = TSTriple(1)
+            self.specials += self.sd_ts.get_tristate(pads.selfdestruct)
+            self.comb += [
+                self.sd_ts.oe.eq(self.power.fields.selfdestruct),
+                self.sd_ts.o.eq(self.power.fields.selfdestruct),
+            ]
 
 # BtGpio -------------------------------------------------------------------------------------------
 
@@ -1619,8 +1668,12 @@ class BetrustedSoC(SoCCore):
             self.add_interrupt("trng_server")
             # put the TRNG proper into an always on domain. It has its own power manager and health tests.
             # The TRNG adds about an 8.5mW power burden when it is in standby mode but clocks on
+            if revision == 'dvt':
+                patchrev = 'pvt2' # use the PVT2 setup, 'should be fine'
+            else:
+                patchrev = revision
             self.submodules.trng = ClockDomainsRenamer({"sys":"sys_always_on", "clk50":"clk50_always_on"})(
-                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=revision, ro_cores=4))
+                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=patchrev, ro_cores=4))
             self.add_csr("trng")
 
         else:
@@ -1956,7 +2009,7 @@ def main():
         "-x", "--xous", help="Build for the Xous runtime environment. Defaults to true. Setting the flag disables this.", default=True, action="store_false"
     )
     parser.add_argument(
-        "-r", "--revision", choices=['modnoise', 'pvt', 'pvt2'], help="Build for a particular revision. Defaults to 'pvt2'", default='pvt2', type=str,
+        "-r", "--revision", choices=['modnoise', 'pvt', 'pvt2', 'dvt'], help="Build for a particular revision. Defaults to 'pvt2'", default='pvt2', type=str,
     )
     parser.add_argument(
         "-u", "--usb-type", choices=['debug', 'device', 'spinal'], help="Select the USB core. Defaults to 'spinal'", default='spinal', type=str,
@@ -1997,8 +2050,8 @@ def main():
         if args.bbram:
             bbram = True
 
-    if (args.revision == 'pvt') or (args.revision == 'modnoise') or (args.revision == 'pvt2'):
-        io = _io_pvt
+    if (args.revision == 'pvt') or (args.revision == 'modnoise') or (args.revision == 'pvt2') or (args.revision == 'dvt'):
+        io = _io_pvt # turns out this core can work on DVT too
     else:
         print("Invalid hardware revision specified: {}; aborting.".format(args.revision))
         sys.exit(1)
@@ -2009,6 +2062,8 @@ def main():
         io += _io_xous_pvt2
     elif args.xous and (args.revision == 'modnoise'):
         io += _io_xous_modnoise
+    elif args.revision == 'dvt':
+        io += _io_dvt
     else:
         io += _io_fw
 
