@@ -21,14 +21,14 @@ default-features = false
 path = "./utralib"
 
 # redirect curve25519-dalek to our version with hw acceleration
-[patch.crates-io.curve25519-dalek]
-git="https://github.com/betrusted-io/curve25519-dalek.git"
-branch="main"
-#path = "../../curve25519-dalek"
-package = "curve25519-dalek"
-version = "3.1.0"
-default-features = false
-features = ["u32e_backend"]
+# [patch.crates-io.curve25519-dalek]
+# git="https://github.com/betrusted-io/curve25519-dalek.git"
+# branch="main"
+# #path = "../../curve25519-dalek"
+# package = "curve25519-dalek"
+# version = "3.1.0"
+# default-features = false
+# features = ["u32e_backend"]
 
 # only if we need to do some dev work...
 #[patch.crates-io.ed25519-dalek]

@@ -63,6 +63,9 @@ from gateware import perfcounter
 from valentyusb.usbcore.cpu.eptri import TriEndpointInterface
 from valentyusb.usbcore.io import IoBuf
 
+from litex.build.sim import SimPlatform
+from litex.build.sim.config import SimConfig
+
 # IOs ----------------------------------------------------------------------------------------------
 
 _io_pvt = [   # PVT-generation I/Os
@@ -568,7 +571,7 @@ class CRG(Module, AutoCSR):
         mmcm.create_clkout(self.cd_usb_48, 48e6, with_reset=False, buf="bufgce", ce=mmcm.locked) # 48 MHz for USB; always-on
         platform.add_platform_command("create_generated_clock -name usb_48 [get_pins MMCME2_ADV/CLKOUT0]")
 
-        mmcm.create_clkout(self.cd_spi, 20e6, with_reset=False, buf="bufgce", ce=mmcm.locked & ~self.power_down)
+        mmcm.create_clkout(self.cd_spi, 10e6, with_reset=False, buf="bufgce", ce=mmcm.locked & ~self.power_down)
         platform.add_platform_command("create_generated_clock -name spi_clk [get_pins MMCME2_ADV/CLKOUT1]")
 
         mmcm.create_clkout(self.cd_spinor, sys_clk_freq, phase=phase, with_reset=False, buf="bufgce", ce=mmcm.locked & ~self.power_down)  # delayed version for SPINOR cclk (different from COM SPI above)
@@ -663,6 +666,28 @@ class BtEvents(Module, AutoCSR, AutoDoc):
         self.comb += [
             self.com_pad.eq(com),
             self.rtc_pad.eq(rtc),
+        ]
+
+# VexLegacyInt ------------------------------------------------------------------------------------------
+
+class VexLegacyInt(Module, AutoCSR):
+    def __init__(self, mach_int, super_int):
+        self.interrupts = Signal(32)
+        self.interrupts_sync = Signal(32)
+        self.mach_mask = CSRStorage(size=32, name="mach_mask", description="Machine IRQ mask")
+        self.mach_pending = CSRStatus(size=32, name="mach_pending", description="Machine IRQ pending")
+        self.super_mask = CSRStorage(size=32, name="super_mask", description="Supervisor IRQ mask")
+        self.super_pending = CSRStatus(size=32, name="super_pending", description="Supervisor IRQ pending")
+        extint_mach = Signal(32)
+        extint_super = Signal(32)
+        self.sync += self.interrupts_sync.eq(self.interrupts)
+        self.comb += [
+            extint_mach.eq(self.interrupts_sync & self.mach_mask.storage),
+            extint_super.eq(self.interrupts_sync & self.super_mask.storage),
+            mach_int.eq(reduce(or_, [extint_mach[i] for i in range(32)])),
+            super_int.eq(reduce(or_, [extint_super[i] for i in range(32)])),
+            self.mach_pending.status.eq(extint_mach),
+            self.super_pending.status.eq(extint_super),
         ]
 
 # BtPower ------------------------------------------------------------------------------------------
@@ -1136,7 +1161,7 @@ class SpinorSoftInt(Module, AutoCSR, AutoDoc):
 # System constants ---------------------------------------------------------------------------------
 
 boot_offset    = 0x500000 # enough space to hold 2x FPGA bitstreams before the firmware start
-bios_size      = 0x10000
+bios_size      = 0x4000 # Runty bios is runty
 SPI_FLASH_SIZE = 128 * 1024 * 1024
 SRAM_EXT_SIZE  = 0x1000000
 prefix = ""  # sometimes 'soc_', sometimes '' prefix Litex is attaching to net names
@@ -1162,9 +1187,9 @@ class BetrustedSoC(SoCCore):
 
     def __init__(self, platform, revision, sys_clk_freq=int(100e6), legacy_spi=False,
                  xous=False, usb_type='debug', uart_name="crossover", bios_path='boot/boot.bin',
-                 puppet=False, use_perfcounter=False, app_uart=False,
+                 puppet=False, use_perfcounter=False, app_uart=False, sim=False,
                  **kwargs):
-        assert sys_clk_freq in [int(12e6), int(100e6)]
+        # assert sys_clk_freq in [int(12e6), int(100e6)]
         global bios_size
 
         # CPU cluster
@@ -1186,7 +1211,7 @@ class BetrustedSoC(SoCCore):
             integrated_rom_init  = None, # bios_path,
             integrated_sram_size = 0,    # Use external SRAM for boot code
             ident                = "", # Was :"Precursor SoC " + revision, but not used by firmware so eliminated
-            cpu_type             = "vexriscv",
+            cpu_type             = "vexiiriscv",
             csr_paging           = 4096,  # increase paging to 1 page size
             csr_address_width    = 16,    # increase to accommodate larger page size
             with_uart            = False, # implemented manually to allow for UART mux
@@ -1195,6 +1220,8 @@ class BetrustedSoC(SoCCore):
             with_ctrl            = False,
             with_timer           = False, # override default timer with a timer that operates in a low-power clock domain
             **kwargs)
+
+        self.use_engine = False
         # Litex will always try to move the ROM back to 0.
         # Move ROM and RAM to uncached regions - we only use these at boot, and they are already quite fast
         # this helps remove their contribution from the cache tag critical path
@@ -1219,7 +1246,7 @@ class BetrustedSoC(SoCCore):
             'com': 13,
             'i2c': 14,
             'btevents': 15,
-            #'messible': 16,
+            'legacy_int' : 16, #'messible': 16,
             #'messible2': 17,
             'ticktimer': 18,
             'susres': 19,
@@ -1273,13 +1300,19 @@ class BetrustedSoC(SoCCore):
             self.irq.locs['app_uart'] = 4
 
         # CPU --------------------------------------------------------------------------------------
-        self.cpu.use_external_variant("VexRiscv/VexRiscv_BetrustedSoC.v")
+        self.legacy_int = VexLegacyInt(self.cpu.m_ext, self.cpu.s_ext)
+        self.comb += [
+            self.legacy_int.interrupts.eq(self.cpu.interrupt)
+        ]
+        self.add_csr("legacy_int", use_loc_if_exists=True)
+
+        self.cpu.use_external_variant("VexiiRiscv/VexiiRiscv.sv")
         self.submodules.reboot = WarmBoot(self, reset_address)
         self.add_csr("reboot", use_loc_if_exists=True)
         warm_reset = Signal()
         wdt_reset = Signal()
         self.comb += warm_reset.eq(self.reboot.do_reset | wdt_reset) # this is patched into the GSR via the SPINOR block (because that's where the STARTUPE2 block lives)
-        self.cpu.cpu_params.update(i_externalResetVector=self.reboot.addr.storage)
+        # self.cpu.cpu_params.update(i_externalResetVector=self.reboot.addr.storage)
         # override the default CPU reset so there's more margin on the signal
         # we do *not* patch this into the system reset because it also kicks the Wishbone USB debug bridge, which complicates firmware updates!
         reset_cycles = 32
@@ -1304,13 +1337,13 @@ class BetrustedSoC(SoCCore):
         # make a custom version of the timer0 core that's in the "always on" domain
         self.submodules.timer0 = ClockDomainsRenamer(cd_remapping={"always_on":"raw_12"})(TimerAlwaysOn())
         self.add_csr("timer0", use_loc_if_exists=True)
-        self.add_interrupt("timer0", use_loc_if_exists=True)
+        self.irq.add("timer0", use_loc_if_exists=True)
 
         # Uncached boot ROM ---------------------------------------------------------------------
         # this ROM prefers compact size over performance
         rom_bus = wishbone.Interface(data_width=self.bus.data_width)
         rom     = BlockRom(bus=rom_bus, init=bios_path)
-        self.bus.add_slave("rom", rom.bus, SoCRegion(origin=self.mem_map["rom"], size=bios_size, mode="r", cached=False))
+        self.bus.add_slave("rom", rom.bus, SoCRegion(origin=self.mem_map["rom"], size=bios_size, mode="r", cached=True))
         self.check_if_exists("rom")
         self.logger.info("Block ROM {} {} {}.".format(
             "rom",
@@ -1322,7 +1355,7 @@ class BetrustedSoC(SoCCore):
         if usb_type == 'device':  # wire up the debug UART automatically if we don't have USB debugging capability
            from litex.soc.cores.uart import UARTWishboneBridge
            self.submodules.uart_bridge = UARTWishboneBridge(platform.request("debug"), sys_clk_freq, baudrate=115200)
-           self.add_wb_master(self.uart_bridge.wishbone)
+           self.bus.add_master(self.uart_bridge.wishbone)
 
         # Clockgen cluster -------------------------------------------------------------------------
         self.submodules.crg = CRG(platform, sys_clk_freq, spinor_edge_delay_ns=2.5)
@@ -1339,7 +1372,7 @@ class BetrustedSoC(SoCCore):
         # GPIO module ------------------------------------------------------------------------------
         self.submodules.gpio = BtGpio(platform.request("gpio"), usb_type=usb_type)
         self.add_csr("gpio", use_loc_if_exists=True)
-        self.add_interrupt("gpio", use_loc_if_exists=True)
+        self.irq.add("gpio", use_loc_if_exists=True)
 
         # UART mux ---------------------------------------------------------------------------------
         from litex.soc.cores import uart
@@ -1348,11 +1381,11 @@ class BetrustedSoC(SoCCore):
             self.submodules.uart = uart.UARTCrossover()
             self.csr.add("uart_phy", use_loc_if_exists=True)
             self.csr.add("uart", use_loc_if_exists=True)
-            self.add_interrupt("uart", use_loc_if_exists=True)
+            self.irq.add("uart", use_loc_if_exists=True)
 
             self.submodules.console = uart.UARTCrossover(tx_fifo_depth=16, rx_fifo_depth=16)
             self.csr.add("console")
-            self.add_interrupt("console", use_loc_if_exists=True)
+            self.irq.add("console", use_loc_if_exists=True)
 
         elif uart_name == "serial":
             serial_layout = [("tx", 1), ("rx", 1)]
@@ -1379,14 +1412,14 @@ class BetrustedSoC(SoCCore):
                     tx_fifo_depth=16, rx_fifo_depth=16)
                 ))
             self.add_csr("uart", use_loc_if_exists=True)
-            self.add_interrupt("uart", use_loc_if_exists=True)
+            self.irq.add("uart", use_loc_if_exists=True)
 
             self.submodules.console = ResetInserter()(
                 ClockDomainsRenamer({"sys":"sys_always_on"})(uart.UART(console_phy_model,
                     tx_fifo_depth=16, rx_fifo_depth=16)
                 ))
             self.add_csr("console", use_loc_if_exists=True)
-            self.add_interrupt("console", use_loc_if_exists=True)
+            self.irq.add("console", use_loc_if_exists=True)
 
             # extra PHY for "application" uses -- used by GDB
             if app_uart:
@@ -1395,7 +1428,7 @@ class BetrustedSoC(SoCCore):
                         tx_fifo_depth=16, rx_fifo_depth=16)
                     ))
                 self.add_csr("app_uart", use_loc_if_exists=True)
-                self.add_interrupt("app_uart", use_loc_if_exists=True)
+                self.irq.add("app_uart", use_loc_if_exists=True)
 
 
         # XADC analog interface---------------------------------------------------------------------
@@ -1543,12 +1576,12 @@ class BetrustedSoC(SoCCore):
            self.submodules.puppet_bridge = ClockDomainsRenamer({"sys":"sys_always_on"})(
                UARTWishboneBridge(pads=puppet_pads, clk_freq=sys_clk_freq, baudrate=115200)
            )
-           self.add_wb_master(self.puppet_bridge.wishbone)
+           self.bus.add_master(self.puppet_bridge.wishbone)
         else:
             self.submodules.com = ClockDomainsRenamer({"sys":"sys_always_on"})(
                 spi.SPIController(platform.request("com"), pipeline_cipo=True))
             self.add_csr("com", use_loc_if_exists=True)
-            self.add_interrupt("com", use_loc_if_exists=True)
+            self.irq.add("com", use_loc_if_exists=True)
             # slow down clock period of SPI to 20MHz (50ns period), this gives us about a 4ns margin for setup for PVT variation
             #   datasheet claims 10.0ns Tc-q max input delay
             #   measurement shows 14.1ns Tc-q using SB_IO primitive on UP5K. Set to 15ns for some safety margin.
@@ -1568,12 +1601,12 @@ class BetrustedSoC(SoCCore):
         self.submodules.i2c = ClockDomainsRenamer({"sys":"sys_always_on"})(i2c.RTLI2C(platform, platform.request("i2c", 0)))
         self.comb += self.i2c.filter_clk.eq(self.crg.cd_usb_12.clk) # slower clock for de-metastabilizing the slow/jitter edges of I2C
         self.add_csr("i2c", use_loc_if_exists=True)
-        self.add_interrupt("i2c", use_loc_if_exists=True)
+        self.irq.add("i2c", use_loc_if_exists=True)
 
         # Event generation for I2C and COM ---------------------------------------------------------
         self.submodules.btevents = ClockDomainsRenamer({"sys":"sys_always_on"})(BtEvents(platform.request("com_irq", 0), platform.request("rtc_irq", 0)))
         self.add_csr("btevents", use_loc_if_exists=True)
-        self.add_interrupt("btevents", use_loc_if_exists=True)
+        self.irq.add("btevents", use_loc_if_exists=True)
 
         # Messible for debug -----------------------------------------------------------------------
         # self.submodules.messible = messible.Messible()
@@ -1584,12 +1617,12 @@ class BetrustedSoC(SoCCore):
         # Tick timer -------------------------------------------------------------------------------
         self.submodules.ticktimer = ClockDomainsRenamer(cd_remapping={"always_on":"raw_12"})(ticktimer.TickTimer(1000, 12e6, bits=64))
         self.add_csr("ticktimer", use_loc_if_exists=True)
-        self.add_interrupt("ticktimer", use_loc_if_exists=True)
+        self.irq.add("ticktimer", use_loc_if_exists=True)
 
         # Suspend/resume ---------------------------------------------------------------------------
         self.submodules.susres = SusRes(bits=64)
         self.add_csr("susres", use_loc_if_exists=True)
-        self.add_interrupt("susres", use_loc_if_exists=True)
+        self.irq.add("susres", use_loc_if_exists=True)
         # wire up signals that cross from the ticktimer's CSR space to the susres CSR space. Allows for virtual memory process isolation
         # between the ticktimer and the suspend resume server, while allowing for cycle-accurate timing on suspend and resume.
         self.comb += [
@@ -1614,7 +1647,7 @@ class BetrustedSoC(SoCCore):
         # Power control pins -----------------------------------------------------------------------
         self.submodules.power = BtPower(platform.request("power"), revision, xous)
         self.add_csr("power", use_loc_if_exists=True)
-        self.add_interrupt("power", use_loc_if_exists=True)
+        self.irq.add("power", use_loc_if_exists=True)
         self.comb += self.power.powerdown_override.eq(self.susres.powerdown_override)
         self.comb += self.power.l2_idle.eq(self.sram_ext.cache_idle)
 
@@ -1637,16 +1670,16 @@ class BetrustedSoC(SoCCore):
             # painful to insert stuff into the S7SPIOPI block in the LiteX repo.
             self.submodules.spinor_soft_int = SpinorSoftInt()
             self.add_csr("spinor_soft_int", use_loc_if_exists=True)
-            self.add_interrupt("spinor_soft_int", use_loc_if_exists=True)
+            self.irq.add("spinor_soft_int", use_loc_if_exists=True)
 
         self.bus.add_slave(name="spiflash", slave=self.spinor.bus, region=SoCRegion(self.mem_map["spiflash"], size=SPI_FLASH_SIZE))
         self.add_csr("spinor", use_loc_if_exists=True)
-        self.add_interrupt("spinor", use_loc_if_exists=True)
+        self.irq.add("spinor", use_loc_if_exists=True)
 
         # Keyboard module --------------------------------------------------------------------------
         self.submodules.keyboard = ClockDomainsRenamer(cd_remapping={"kbd":"lpclk", "sys":"sys_always_on"})(keyboard.KeyScan(platform.request("kbd")))
         self.add_csr("keyboard", use_loc_if_exists=True)
-        self.add_interrupt("keyboard", use_loc_if_exists=True)
+        self.irq.add("keyboard", use_loc_if_exists=True)
         self.submodules.keyinject = ClockDomainsRenamer({"sys":"sys_always_on"})(KeyInject())
         self.add_csr("keyinject", use_loc_if_exists=True)
         self.comb += [
@@ -1673,7 +1706,7 @@ class BetrustedSoC(SoCCore):
             self.submodules.audio = S7I2S(platform.request("i2s", 0), controller=False, document_interrupts=True)
         self.bus.add_slave("audio", self.audio.bus, SoCRegion(origin=self.mem_map["audio"], size=0x4, cached=False))
         self.add_csr("audio", use_loc_if_exists=True)
-        self.add_interrupt("audio", use_loc_if_exists=True)
+        self.irq.add("audio", use_loc_if_exists=True)
 
         self.comb += platform.request("au_mclk", 0).eq(self.crg.clk12_bufg)
 
@@ -1682,14 +1715,14 @@ class BetrustedSoC(SoCCore):
             from gateware.trng.trng_managed import TrngManaged, TrngManagedKernel, TrngManagedServer
             self.submodules.trng_kernel = ClockDomainsRenamer({"sys":"sys_always_on"})(TrngManagedKernel())
             self.add_csr("trng_kernel", use_loc_if_exists=True)
-            self.add_interrupt("trng_kernel", use_loc_if_exists=True)
+            self.irq.add("trng_kernel", use_loc_if_exists=True)
             self.submodules.trng_server = ClockDomainsRenamer({"sys":"sys_always_on"})(TrngManagedServer(ro_cores=4))
             self.add_csr("trng_server", use_loc_if_exists=True)
-            self.add_interrupt("trng_server", use_loc_if_exists=True)
+            self.irq.add("trng_server", use_loc_if_exists=True)
             # put the TRNG proper into an always on domain. It has its own power manager and health tests.
             # The TRNG adds about an 8.5mW power burden when it is in standby mode but clocks on
             self.submodules.trng = ClockDomainsRenamer({"sys":"sys_always_on", "clk50":"clk50_always_on"})(
-                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=revision, ro_cores=4))
+                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=revision, ro_cores=4, sim=sim))
             self.add_csr("trng", use_loc_if_exists=True)
             # Required for Vivado 2023 and later
             self.platform.add_platform_command('set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets RINGOSC_*]')
@@ -1726,20 +1759,21 @@ class BetrustedSoC(SoCCore):
         # SHA-256 block ----------------------------------------------------------------------------
         #self.submodules.sha2 = sha2.Hmac(platform)
         #self.add_csr("sha2", use_loc_if_exists=True)
-        #self.add_interrupt("sha2", use_loc_if_exists=True)
+        #self.irq.add("sha2", use_loc_if_exists=True)
         #self.bus.add_slave("sha2", self.sha2.bus, SoCRegion(origin=self.mem_map["sha2"], size=0x4, cached=False))
 
         # SHA-512 block ----------------------------------------------------------------------------
         self.submodules.sha512 = sha512.Hmac(platform) # clk50 is only for crypto, so even though it doesn't have the _crypto suffix, it is gated with the _crypto clocks
         self.add_csr("sha512", use_loc_if_exists=True)
-        self.add_interrupt("sha512", use_loc_if_exists=True)
+        self.irq.add("sha512", use_loc_if_exists=True)
         self.bus.add_slave("sha512", self.sha512.bus, SoCRegion(origin=self.mem_map["sha512"], size=0x4, cached=False))
 
         # Curve25519 engine ------------------------------------------------------------------------
-        self.submodules.engine = ClockDomainsRenamer({"eng_clk":"clk50", "rf_clk":"clk200_crypto", "mul_clk":"sys_crypto"})(Engine(platform, self.mem_map["engine"], build_prefix=prefix))
-        self.add_csr("engine", use_loc_if_exists=True)
-        self.add_interrupt("engine", use_loc_if_exists=True)
-        self.bus.add_slave("engine", self.engine.bus, SoCRegion(origin=self.mem_map["engine"], size=0x2_0000, cached=False))
+        if self.use_engine:
+            self.submodules.engine = ClockDomainsRenamer({"eng_clk":"clk50", "rf_clk":"clk200_crypto", "mul_clk":"sys_crypto"})(Engine(platform, self.mem_map["engine"], build_prefix=prefix))
+            self.add_csr("engine", use_loc_if_exists=True)
+            self.irq.add("engine", use_loc_if_exists=True)
+            self.bus.add_slave("engine", self.engine.bus, SoCRegion(origin=self.mem_map["engine"], size=0x2_0000, cached=False))
 
         # JTAG self-provisioning block -------------------------------------------------------------
         self.submodules.jtag = ClockDomainsRenamer({"sys":"sys_always_on"})(jtag_phy.BtJtag(platform.request("jtag")))
@@ -1760,7 +1794,7 @@ class BetrustedSoC(SoCCore):
             usb_iobuf = IoBuf(usb_pads.d_p, usb_pads.d_n, usb_pads.pullup_p)
             self.submodules.usb = TriEndpointInterface(usb_iobuf, cdc=True)
             self.add_csr("usb", use_loc_if_exists=True)
-            self.add_interrupt("usb", use_loc_if_exists=True)
+            self.irq.add("usb", use_loc_if_exists=True)
             self.platform.add_platform_command("set_false_path -through [get_nets {}usb_usb_core_rx_o_reset]".format(prefix))
             # all multiregs are false paths!
             self.platform.add_platform_command('set_false_path -through [get_pins -filter {{NAME =~ "*D*"}} -of_objects [get_cells xilinxmultireg*]]')
@@ -1778,7 +1812,7 @@ class BetrustedSoC(SoCCore):
             usb_iobuf = usbio.IoBuf(usb_pads.d_p, usb_pads.d_n, usb_pads.pullup_p)
             self.submodules.usb = dummyusb.DummyUsb(usb_iobuf, debug=True, burst=True, cdc=True, relax_timing=True, product="Precursor " + revision)
             self.comb += self.usb.debug_bridge.disable_wb.eq(self.gpio.usbdisable.storage) # wire up the USB disable bit
-            self.add_wb_master(self.usb.debug_bridge.wishbone)
+            self.bus.add_master(self.usb.debug_bridge.wishbone)
             # self.platform.add_platform_command(
             #    'set_false_path -rise_from [get_clocks usb_12] -rise_to [get_clocks sys_clk] -through [get_pins {net}_reg*/D]',
             #     net=self.usb.debug_bridge.write_fifo.dout)
@@ -1815,7 +1849,7 @@ class BetrustedSoC(SoCCore):
             # all 48/sys paths are async (thanks to charles papon for suggesting this syntax)
             self.platform.add_platform_command('set_clock_groups -asynchronous -group [get_clocks sys_clk] -group [get_clocks usb_48]')
             self.add_csr("usbdev", use_loc_if_exists=True)
-            self.add_interrupt("usbdev", use_loc_if_exists=True)
+            self.irq.add("usbdev", use_loc_if_exists=True)
 
             # wishbone debug core
             from valentyusb.usbcore.cpu import dummyusb
@@ -1852,7 +1886,7 @@ class BetrustedSoC(SoCCore):
                 force_reset.eq(self.usbdev.usbselect.fields.force_reset),
                 self.usb.debug_bridge.disable_wb.eq(self.usbdev.usbdisable.storage)
             ]
-            self.add_wb_master(self.usb.debug_bridge.wishbone)
+            self.bus.add_master("debug_bridge", self.usb.debug_bridge.wishbone)
             # 12/sys paths are also async
             self.platform.add_platform_command('set_clock_groups -asynchronous -group [get_clocks sys_clk] -group [get_clocks usb_12]')
 
@@ -1876,15 +1910,25 @@ class BetrustedSoC(SoCCore):
         self.add_csr("d11ctime", use_loc_if_exists=True)
 
         # Global, cross-domain power management signals go at the bottom -----------------------------
-        self.comb += [
-            # if any crypto block wants its power to be on, it gets it. for it to be off, all blocks have to agree to turn it off
-            self.crg.crypto_on.eq(self.power.power.fields.crypto_on | self.sha512.power.fields.on | self.engine.power.fields.on),
-            # these status field helps debug which blocks are wedging power on
-            self.power.clk_status.fields.crypto_on.eq(self.crg.crypto_on),
-            self.power.clk_status.fields.sha_on.eq(self.sha512.power.fields.on),
-            self.power.clk_status.fields.engine_on.eq(self.engine.power.fields.on),
-            self.power.clk_status.fields.btpower_on.eq(self.power.power.fields.crypto_on),
-        ]
+        if self.use_engine:
+            self.comb += [
+                # if any crypto block wants its power to be on, it gets it. for it to be off, all blocks have to agree to turn it off
+                self.crg.crypto_on.eq(self.power.power.fields.crypto_on | self.sha512.power.fields.on | self.engine.power.fields.on),
+                # these status field helps debug which blocks are wedging power on
+                self.power.clk_status.fields.crypto_on.eq(self.crg.crypto_on),
+                self.power.clk_status.fields.sha_on.eq(self.sha512.power.fields.on),
+                self.power.clk_status.fields.engine_on.eq(self.engine.power.fields.on),
+                self.power.clk_status.fields.btpower_on.eq(self.power.power.fields.crypto_on),
+            ]
+        else:
+            self.comb += [
+                # if any crypto block wants its power to be on, it gets it. for it to be off, all blocks have to agree to turn it off
+                self.crg.crypto_on.eq(self.power.power.fields.crypto_on | self.sha512.power.fields.on),
+                # these status field helps debug which blocks are wedging power on
+                self.power.clk_status.fields.crypto_on.eq(self.crg.crypto_on),
+                self.power.clk_status.fields.sha_on.eq(self.sha512.power.fields.on),
+                self.power.clk_status.fields.btpower_on.eq(self.power.power.fields.crypto_on),
+            ]
         # the WFI module takes a WFI cue from the kernel and turns it into a pulse that can trigger
         # a clock gating event
         self.submodules.wfi = Wfi()
@@ -2012,6 +2056,28 @@ class BetrustedSoC(SoCCore):
         # print(self.irq.locs)
         # print(self.csr.locs)
 
+class XsimPlatform(XilinxPlatform):
+    def __init__(self, io, toolchain="vivado", programmer="vivado"):
+        part = "xc7s" + "50" + "-csga324-1il"
+        XilinxPlatform.__init__(self, part, io, toolchain=toolchain)
+
+        self.add_platform_command(
+            "set_property CONFIG_VOLTAGE 3.3 [current_design]")
+        self.add_platform_command(
+            "set_property CFGBVS GND [current_design]")
+        self.add_platform_command(
+            "set_property BITSTREAM.CONFIG.CONFIGRATE 66 [current_design]")
+        self.add_platform_command(
+            "set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 1 [current_design]")
+        self.toolchain.bitstream_commands = [
+            "set_property CONFIG_VOLTAGE 3.3 [current_design]",
+            "set_property CFGBVS GND [current_design]",
+            "set_property BITSTREAM.CONFIG.CONFIGRATE 66 [current_design]",
+            "set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 1 [current_design]",
+        ]
+    def do_finalize(self, fragment):
+        XilinxPlatform.do_finalize(self, fragment)
+
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -2059,6 +2125,27 @@ def main():
     parser.add_argument(
         "--app-uart", help="Instantiate an extra UART for app and GDB use", default=False, action="store_true",
     )
+    parser.add_argument(
+        "--sim", help="Run the verilator simulator", default=False, action="store_true",
+    )
+    # Speed. In reality, just selects whether we save a waveform, or not.
+    parser.add_argument("--speed",                type=str, default="normal",
+                        choices=['normal', 'fast'],
+                        help="Run at `normal` or `fast` speed. Fast runs do not save waveform data. Only valid with `verilator` simulator option.")
+
+    parser.add_argument("--simulator",            type=str, default="xsim",
+                        choices=['verilator', 'xsim'],
+                        help="Switch between `verilator` or `xsim`")
+    # Debug/Waveform.
+    parser.add_argument("--sim-debug",            action="store_true",     help="Add simulation debugging modules.")
+    parser.add_argument("--gtkwave-savefile",     action="store_true",     help="Generate GTKWave savefile.")
+    parser.add_argument("--non-interactive",      action="store_true",     help="Run simulation without user input.")
+    parser.add_argument("--threads",              type=int, default=1,     help="Number of simulator threads")
+    parser.add_argument("--jobs",                 type=int, default=10,    help="Number of simulator compile jobs")
+    parser.add_argument("--trace",                action="store_true",     help="Enable tracing")
+    parser.add_argument("--trace-start",          type=int, default=0,     help="Start time of tracing")
+    parser.add_argument("--trace-end",            type=int, default=-1,    help="End time of tracing")
+    parser.add_argument("--trace-fst",            action="store_true",     help="Use FST file")
 
     ##### extract user arguments
     args = parser.parse_args()
@@ -2098,17 +2185,18 @@ def main():
         uart_name="crossover"
 
     ##### build the "bios"
+    print(f'******************************{args.sim}')
     if compile_software:
         if args.simple_boot:
-            os.system("riscv64-unknown-elf-as -fpic loader{}loader.S -o loader{}loader.elf".format(os.path.sep, os.path.sep))
-            os.system("riscv64-unknown-elf-objcopy -O binary loader{}loader.elf loader{}bios.bin".format(os.path.sep, os.path.sep))
+            os.system("riscv-none-elf-as -fpic loader{}loader.S -o loader{}loader.elf".format(os.path.sep, os.path.sep))
+            os.system("riscv-none-elf-objcopy -O binary loader{}loader.elf loader{}bios.bin".format(os.path.sep, os.path.sep))
             print("**** WARNING: using 'simple boot' method -- no signature verification checks are done on boot! ****")
             bios_path = 'loader{}bios.bin'.format(os.path.sep)
         else:
             # do a first-pass to create the soc.svd file
             platform = Platform(io, encrypt=encrypt, bbram=bbram, strategy=args.strategy)
             platform.add_extension(_io_uart_debug_swapped)
-            soc = BetrustedSoC(platform, args.revision, xous=args.xous, usb_type=args.usb_type, uart_name=uart_name, bios_path=None, app_uart=args.app_uart)
+            soc = BetrustedSoC(platform, args.revision, xous=args.xous, usb_type=args.usb_type, uart_name=uart_name, bios_path=None, app_uart=args.app_uart, sim=args.sim)
             builder = Builder(soc, output_dir="build", csr_csv="build/csr.csv", csr_svd="build/software/soc.svd",
                 compile_software=False, compile_gateware=False)
             builder.software_packages=[] # necessary to bypass Meson dependency checks required by Litex libc
@@ -2121,75 +2209,114 @@ def main():
 
     ##### second pass to build the actual chip. Note any changes below need to be reflected into the first pass...might be a good idea to modularize that
     ##### setup platform
-    platform = Platform(io, encrypt=encrypt, bbram=bbram, strategy=args.strategy)
+    if args.sim:
+        platform = XsimPlatform(_io_pvt)
+    else:
+        platform = Platform(io, encrypt=encrypt, bbram=bbram, strategy=args.strategy)
     # _io_uart_debug wires debug bridge to Rpi; _io_uart_debug_swapped wires console to Rpi
     platform.add_extension(_io_uart_debug_swapped)
 
-    ##### define the soc
-    soc = BetrustedSoC(
-        platform,
-        args.revision,
-        xous=args.xous,
-        usb_type=args.usb_type,
-        uart_name=uart_name,
-        bios_path=bios_path,
-        puppet=args.puppet,
-        use_perfcounter=args.perfcounter,
-        app_uart=args.app_uart,
-    )
+    if not args.sim:
+        ##### define the soc
+        soc = BetrustedSoC(
+            platform,
+            args.revision,
+            xous=args.xous,
+            usb_type=args.usb_type,
+            uart_name=uart_name,
+            bios_path=bios_path,
+            puppet=args.puppet,
+            use_perfcounter=args.perfcounter,
+            app_uart=args.app_uart,
+            sys_clk_freq=int(75e6),
+            sim=args.sim,
+        )
 
-    ##### setup the builder and run it
-    builder = Builder(soc, output_dir="build",
-        csr_csv="build/csr.csv", csr_svd="build/software/soc.svd",
-        compile_software=False, compile_gateware=compile_gateware)
-    builder.software_packages=[] # necessary to bypass Meson dependency checks required by Litex libc
+        ##### setup the builder and run it
+        builder = Builder(soc, output_dir="build",
+            csr_csv="build/csr.csv", csr_svd="build/software/soc.svd",
+            compile_software=False, compile_gateware=compile_gateware)
+        builder.software_packages=[] # necessary to bypass Meson dependency checks required by Litex libc
 
-    vns = builder.build()
+        vns = builder.build()
 
-    ##### post-build routines
-    soc.do_exit(vns)
-    lxsocdoc.generate_docs(soc, "build/documentation", note_pulses=True, sphinx_extensions=['sphinx_math_dollar', 'sphinx.ext.mathjax'],
-            sphinx_extra_config=r"""
+        ##### post-build routines
+        soc.do_exit(vns)
+        lxsocdoc.generate_docs(soc, "build/documentation", note_pulses=True, sphinx_extensions=['sphinx_math_dollar', 'sphinx.ext.mathjax'],
+                sphinx_extra_config=r"""
 mathjax_config = {
-   'tex2jax': {
-       'inlineMath': [ ["\\(","\\)"] ],
-       'displayMath': [["\\[","\\]"] ],
-   },
+'tex2jax': {
+    'inlineMath': [ ["\\(","\\)"] ],
+    'displayMath': [["\\[","\\]"] ],
+},
 }""")
 
-    # generate the rom-inject library code
-    if ~args.document_only:
-        if not os.path.exists('fw/rom-inject/src'): # make rom-inject/src if it doesn't exist, e.g. on clean checkout
-            os.mkdir('fw/rom-inject/src')
-        with open('fw/rom-inject/src/lib.rs', 'w+') as libfile:
-            subprocess.call([sys.executable, './key2bits.py', '-c', '-kkeystore.bin', '-rrom.db'], stdout=libfile)
+        # generate the rom-inject library code
+        if ~args.document_only:
+            if not os.path.exists('fw/rom-inject/src'): # make rom-inject/src if it doesn't exist, e.g. on clean checkout
+                os.mkdir('fw/rom-inject/src')
+            with open('fw/rom-inject/src/lib.rs', 'w+') as libfile:
+                subprocess.call([sys.executable, './key2bits.py', '-c', '-kkeystore.bin', '-rrom.db'], stdout=libfile)
 
-    # now re-encrypt the binary if needed
-    if encrypt and not args.document_only:
-        # check if we need to re-encrypt to a set key
-        # my.nky -- indicates the fuses have been burned on the target device, and needs re-encryption
-        # keystore.bin -- indicates we want to initialize the on-chip key ROM with a set of known values
-        if Path(args.encrypt).is_file():
-            print('Found {}, re-encrypting binary to the specified fuse settings.'.format(args.encrypt))
-            #if not Path('keystore.bin').is_file():  # i think we always want to regenerate this file from source...
-            subprocess.call([sys.executable, './gen_keyrom.py', '--efuse-key', args.encrypt, '--dev-pubkey', './devkey/dev-x509.crt', '--output', 'keystore.bin'])
+        # now re-encrypt the binary if needed
+        if encrypt and not args.document_only:
+            # check if we need to re-encrypt to a set key
+            # my.nky -- indicates the fuses have been burned on the target device, and needs re-encryption
+            # keystore.bin -- indicates we want to initialize the on-chip key ROM with a set of known values
+            if Path(args.encrypt).is_file():
+                print('Found {}, re-encrypting binary to the specified fuse settings.'.format(args.encrypt))
+                #if not Path('keystore.bin').is_file():  # i think we always want to regenerate this file from source...
+                subprocess.call([sys.executable, './gen_keyrom.py', '--efuse-key', args.encrypt, '--dev-pubkey', './devkey/dev-x509.crt', '--output', 'keystore.bin'])
 
-            print('Found keystore.bin, patching bitstream to contain specified keystore values.')
-            with open('keystore.patch', 'w') as patchfile:
-                subprocess.call([sys.executable, './key2bits.py', '-kkeystore.bin', '-rrom.db'], stdout=patchfile)
-                keystore_args = '-pkeystore.patch'
-                if bbram:
-                    enc = [sys.executable, 'deps/encrypt-bitstream-python/encrypt-bitstream.py', '--bbram','-fbuild/gateware/betrusted_soc.bin', '-idummy.nky', '-k' + args.encrypt, '-obuild/gateware/encrypted'] + [keystore_args]
-                else:
-                    enc = [sys.executable, 'deps/encrypt-bitstream-python/encrypt-bitstream.py', '-fbuild/gateware/betrusted_soc.bin', '-idummy.nky', '-k' + args.encrypt, '-obuild/gateware/encrypted'] + [keystore_args]
+                print('Found keystore.bin, patching bitstream to contain specified keystore values.')
+                with open('keystore.patch', 'w') as patchfile:
+                    subprocess.call([sys.executable, './key2bits.py', '-kkeystore.bin', '-rrom.db'], stdout=patchfile)
+                    keystore_args = '-pkeystore.patch'
+                    if bbram:
+                        enc = [sys.executable, 'deps/encrypt-bitstream-python/encrypt-bitstream.py', '--bbram','-fbuild/gateware/betrusted_soc.bin', '-idummy.nky', '-k' + args.encrypt, '-obuild/gateware/encrypted'] + [keystore_args]
+                    else:
+                        enc = [sys.executable, 'deps/encrypt-bitstream-python/encrypt-bitstream.py', '-fbuild/gateware/betrusted_soc.bin', '-idummy.nky', '-k' + args.encrypt, '-obuild/gateware/encrypted'] + [keystore_args]
 
-            subprocess.call(enc)
+                subprocess.call(enc)
 
-            pad = [sys.executable, './append_csr.py', '-bbuild/gateware/encrypted.bin', '-cbuild/csr.csv', '-obuild/gateware/soc_csr.bin']
-            subprocess.call(pad)
-        else:
-            print('Specified key file {} does not exist'.format(args.encrypt))
-            return 1
+                pad = [sys.executable, './append_csr.py', '-bbuild/gateware/encrypted.bin', '-cbuild/csr.csv', '-obuild/gateware/soc_csr.bin']
+                subprocess.call(pad)
+            else:
+                print('Specified key file {} does not exist'.format(args.encrypt))
+                return 1
+    else:
+        ##### define the soc
+        soc = BetrustedSoC(
+            platform,
+            args.revision,
+            xous=args.xous,
+            usb_type=args.usb_type,
+            uart_name=uart_name,
+            bios_path=bios_path,
+            puppet=args.puppet,
+            use_perfcounter=args.perfcounter,
+            app_uart=args.app_uart,
+            sys_clk_freq=int(40e6),
+            sim=args.sim,
+        )
+
+        # turn off regular_comb for simulation
+        rc=True
+
+        # Setup the builder and run it --------------------------------------------------------------
+        builder = Builder(soc,
+            csr_csv="build/csr.csv",
+            csr_svd="build/software/soc.svd",
+        )
+        builder.software_packages=[] # necessary to bypass Meson dependency checks required by Litex libc
+        builder = Builder(soc, output_dir="build",
+            csr_csv="build/csr.csv", csr_svd="build/software/soc.svd",
+            compile_software=False, compile_gateware=False)
+
+        builder.build(run=False, regular_comb=rc)
+
+        from sim_support.sim_bench import SimRunner
+        SimRunner(False, [], vex_verilog_path="VexiiRiscv/VexiiRiscv.sv")
 
     return 0
 
