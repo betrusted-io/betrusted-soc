@@ -571,6 +571,7 @@ class CRG(Module, AutoCSR):
         mmcm.create_clkout(self.cd_usb_48, 48e6, with_reset=False, buf="bufgce", ce=mmcm.locked) # 48 MHz for USB; always-on
         platform.add_platform_command("create_generated_clock -name usb_48 [get_pins MMCME2_ADV/CLKOUT0]")
 
+        # ***VEXII: frequency needs to be lower because things don't work when this is too fast***
         mmcm.create_clkout(self.cd_spi, 10e6, with_reset=False, buf="bufgce", ce=mmcm.locked & ~self.power_down)
         platform.add_platform_command("create_generated_clock -name spi_clk [get_pins MMCME2_ADV/CLKOUT1]")
 
@@ -583,7 +584,8 @@ class CRG(Module, AutoCSR):
         platform.add_platform_command("create_generated_clock -name clk200 [get_pins MMCME2_ADV/CLKOUT3]")
 
         # clk50 is explicitly for the crypto unit, so it doesn't have the _crypto suffix, consfusingly...
-        mmcm.create_clkout(self.cd_clk50, 50e6, with_reset=False, buf="bufgce", ce=(mmcm.locked & (~self.power_down | self.crypto_on)),
+        # ***VEXII: frequency needs to be lower because things don't work if it's equal to sysclk***
+        mmcm.create_clkout(self.cd_clk50, sys_clk_freq / 2, with_reset=False, buf="bufgce", ce=(mmcm.locked & (~self.power_down | self.crypto_on)),
             gated_replicas={self.cd_clk50_always_on: mmcm.locked}) # 50MHz for ChaCha conditioner, attached to the always-on TRNG
         platform.add_platform_command("create_generated_clock -name clk50 [get_pins MMCME2_ADV/CLKOUT4]")
 
@@ -1721,8 +1723,9 @@ class BetrustedSoC(SoCCore):
             self.irq.add("trng_server", use_loc_if_exists=True)
             # put the TRNG proper into an always on domain. It has its own power manager and health tests.
             # The TRNG adds about an 8.5mW power burden when it is in standby mode but clocks on
+            # *** VEXII: bypass because XADC is broken in the slower clock config ***
             self.submodules.trng = ClockDomainsRenamer({"sys":"sys_always_on", "clk50":"clk50_always_on"})(
-                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=revision, ro_cores=4, sim=sim))
+                TrngManaged(platform, analog_pads, platform.request("noise"), server=self.trng_server, kernel=self.trng_kernel, revision=revision, ro_cores=4, sim=sim, test_bypass=True))
             self.add_csr("trng", use_loc_if_exists=True)
             # Required for Vivado 2023 and later
             self.platform.add_platform_command('set_property ALLOW_COMBINATORIAL_LOOPS TRUE [get_nets RINGOSC_*]')
@@ -2215,6 +2218,7 @@ def main():
         platform = Platform(io, encrypt=encrypt, bbram=bbram, strategy=args.strategy)
     # _io_uart_debug wires debug bridge to Rpi; _io_uart_debug_swapped wires console to Rpi
     platform.add_extension(_io_uart_debug_swapped)
+    platform.add_source(os.path.join("VexiiRiscv", "early0_AesZknPlugin_logic_onData_rom_storage.v"))
 
     if not args.sim:
         ##### define the soc
@@ -2228,7 +2232,7 @@ def main():
             puppet=args.puppet,
             use_perfcounter=args.perfcounter,
             app_uart=args.app_uart,
-            sys_clk_freq=int(75e6),
+            sys_clk_freq=int(50e6),
             sim=args.sim,
         )
 
