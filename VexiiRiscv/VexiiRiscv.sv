@@ -1,6 +1,6 @@
 // Generator : SpinalHDL dev    git head : dc6a3132b8001d8134c58fc0f52f2e05699e4361
 // Component : VexiiRiscv
-// Git hash  : a328f91bb75a6868c9e670a4de2f921fc9e32797
+// Git hash  : cd5c5c3c4606acf5eb346768289f2adddfe851ac
 
 `timescale 1ns/1ps
 
@@ -147,6 +147,7 @@ module VexiiRiscv (
   reg                 integer_RegFilePlugin_logic_regfile_fpga_io_writes_0_valid;
   reg        [4:0]    integer_RegFilePlugin_logic_regfile_fpga_io_writes_0_address;
   reg        [31:0]   integer_RegFilePlugin_logic_regfile_fpga_io_writes_0_data;
+  wire                early0_AesZknPlugin_logic_onData_rom_storage_1_en;
   wire       [30:0]   BtbPlugin_logic_ras_mem_stack_spinal_port0;
   reg        [63:0]   LsuL1Plugin_logic_banks_0_mem_spinal_port1;
   reg        [63:0]   LsuL1Plugin_logic_banks_1_mem_spinal_port1;
@@ -243,6 +244,7 @@ module VexiiRiscv (
   wire       [31:0]   integer_RegFilePlugin_logic_regfile_fpga_io_reads_1_data;
   wire       [31:0]   integer_RegFilePlugin_logic_regfile_fpga_io_reads_2_data;
   wire       [31:0]   integer_RegFilePlugin_logic_regfile_fpga_io_reads_3_data;
+  wire       [31:0]   early0_AesZknPlugin_logic_onData_rom_storage_1_data;
   wire       [31:0]   _zz_early0_IntAluPlugin_logic_alu_result;
   wire       [31:0]   _zz_early0_IntAluPlugin_logic_alu_result_1;
   wire       [31:0]   _zz_early0_IntAluPlugin_logic_alu_result_2;
@@ -673,6 +675,15 @@ module VexiiRiscv (
   wire       [9:0]    _zz_decode_ctrls_0_up_Decode_DOP_ID_1;
   wire       [0:0]    _zz_decode_ctrls_0_up_Decode_DOP_ID_1_1;
   wire       [1:0]    _zz_AlignerPlugin_logic_feeder_lanes_1_onBtb_pcLastSlice;
+  reg        [7:0]    _zz_early0_AesZknPlugin_logic_onRead_romAddress;
+  reg        [1:0]    _zz_early0_AesZknPlugin_logic_onData_rom_output_0;
+  reg        [1:0]    _zz_early0_AesZknPlugin_logic_onData_rom_output_1;
+  reg        [1:0]    _zz_early0_AesZknPlugin_logic_onData_rom_output_2;
+  reg        [1:0]    _zz_early0_AesZknPlugin_logic_onData_rom_output_3;
+  reg        [7:0]    _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0;
+  reg        [7:0]    _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1;
+  reg        [7:0]    _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2;
+  reg        [7:0]    _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3;
   wire       [3:0]    _zz_early0_EnvPlugin_logic_trapPort_payload_code;
   wire       [0:0]    _zz_LsuPlugin_pmaBuilder_l1_onTransfers_0_addressHit;
   wire       [31:0]   _zz_LsuPlugin_logic_onPma_cached_rsp_fault;
@@ -746,36 +757,37 @@ module VexiiRiscv (
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_2;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_3;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_4;
-  wire       [29:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_5;
+  wire       [30:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_5;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_6;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_7;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_8;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_9;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_10;
-  wire       [23:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_11;
+  wire       [24:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_11;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_12;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_13;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_14;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_15;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_16;
-  wire       [17:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_17;
+  wire       [18:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_17;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_18;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_19;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_20;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_21;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_22;
-  wire       [11:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_23;
+  wire       [12:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_23;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_24;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_25;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_26;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_27;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_28;
-  wire       [5:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_29;
+  wire       [6:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_29;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_30;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_31;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_0_32;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_33;
-  wire                _zz_decode_ctrls_1_down_Decode_LEGAL_0_34;
+  wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_34;
+  wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_0_35;
   wire       [0:0]    _zz_DecoderPlugin_logic_laneLogic_0_fixer_isJb;
   wire       [31:0]   _zz_DecoderPlugin_logic_forgetPort_payload_pcOnLastSlice;
   wire       [1:0]    _zz_DecoderPlugin_logic_forgetPort_payload_pcOnLastSlice_1;
@@ -799,36 +811,37 @@ module VexiiRiscv (
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_2;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_3;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_4;
-  wire       [29:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_5;
+  wire       [30:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_5;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_6;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_7;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_8;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_9;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_10;
-  wire       [23:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_11;
+  wire       [24:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_11;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_12;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_13;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_14;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_15;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_16;
-  wire       [17:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_17;
+  wire       [18:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_17;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_18;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_19;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_20;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_21;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_22;
-  wire       [11:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_23;
+  wire       [12:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_23;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_24;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_25;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_26;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_27;
   wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_28;
-  wire       [5:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_29;
+  wire       [6:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_29;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_30;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_31;
   wire       [31:0]   _zz_decode_ctrls_1_down_Decode_LEGAL_1_32;
   wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_33;
-  wire                _zz_decode_ctrls_1_down_Decode_LEGAL_1_34;
+  wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_34;
+  wire       [0:0]    _zz_decode_ctrls_1_down_Decode_LEGAL_1_35;
   wire       [0:0]    _zz_DecoderPlugin_logic_laneLogic_1_fixer_isJb;
   wire       [31:0]   _zz_DecoderPlugin_logic_forgetPort_payload_pcOnLastSlice_3;
   wire       [1:0]    _zz_DecoderPlugin_logic_forgetPort_payload_pcOnLastSlice_4;
@@ -2046,6 +2059,8 @@ module VexiiRiscv (
   wire       [0:0]    _zz_execute_ctrl0_down_early0_BarrelShifterPlugin_SEL_lane0_1;
   wire       [0:0]    _zz_execute_ctrl0_down_early0_BranchPlugin_SEL_lane0;
   wire       [0:0]    _zz_execute_ctrl0_down_early0_BranchPlugin_SEL_lane0_1;
+  wire       [0:0]    _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0;
+  wire       [0:0]    _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0_1;
   wire       [0:0]    _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0;
   wire       [0:0]    _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0_1;
   wire       [0:0]    _zz_execute_ctrl0_down_early0_DivPlugin_SEL_lane0;
@@ -2345,6 +2360,7 @@ module VexiiRiscv (
   wire                execute_ctrl2_down_late0_BarrelShifterPlugin_SEL_lane0;
   wire                execute_ctrl2_down_late0_IntAluPlugin_SEL_lane0;
   wire                execute_ctrl2_down_early0_MulPlugin_SEL_lane0;
+  wire                execute_ctrl2_down_early0_AesZknPlugin_SEL_lane0;
   wire                execute_ctrl2_down_early0_BranchPlugin_SEL_lane0;
   wire       [1:0]    execute_ctrl2_down_AguPlugin_SIZE_lane0;
   wire                execute_ctrl2_down_COMPLETED_lane1;
@@ -2370,6 +2386,7 @@ module VexiiRiscv (
   wire       [31:0]   execute_ctrl2_down_Prediction_ALIGNED_JUMPED_PC_lane0;
   wire                execute_ctrl2_down_Prediction_ALIGNED_JUMPED_lane0;
   reg                 execute_ctrl3_up_MMU_BYPASS_TRANSLATION_lane0;
+  reg        [31:0]   execute_ctrl3_up_early0_AesZknPlugin_logic_onData_CALC_lane0;
   reg        [31:0]   execute_ctrl3_up_late1_SrcPlugin_SRC2_lane1;
   reg        [31:0]   execute_ctrl3_up_late1_SrcPlugin_SRC1_lane1;
   reg        [31:0]   execute_ctrl3_up_late0_SrcPlugin_SRC2_lane0;
@@ -2487,6 +2504,7 @@ module VexiiRiscv (
   reg                 execute_ctrl3_up_late0_BarrelShifterPlugin_SEL_lane0;
   reg                 execute_ctrl3_up_late0_IntAluPlugin_SEL_lane0;
   reg                 execute_ctrl3_up_early0_MulPlugin_SEL_lane0;
+  reg                 execute_ctrl3_up_early0_AesZknPlugin_SEL_lane0;
   reg                 execute_ctrl3_up_early0_BranchPlugin_SEL_lane0;
   reg        [1:0]    execute_ctrl3_up_AguPlugin_SIZE_lane0;
   reg        [0:0]    execute_ctrl3_up_LANE_AGE_lane1;
@@ -2552,6 +2570,7 @@ module VexiiRiscv (
   wire                execute_ctrl1_down_late0_BarrelShifterPlugin_SEL_lane0;
   wire                execute_ctrl1_down_late0_IntAluPlugin_SEL_lane0;
   wire                execute_ctrl1_down_early0_MulPlugin_SEL_lane0;
+  wire                execute_ctrl1_down_early0_AesZknPlugin_SEL_lane0;
   wire       [1:0]    execute_ctrl1_down_GSharePlugin_GSHARE_COUNTER_lane1_0;
   wire       [1:0]    execute_ctrl1_down_GSharePlugin_GSHARE_COUNTER_lane1_1;
   wire       [1:0]    execute_ctrl1_down_GSharePlugin_GSHARE_COUNTER_lane1_2;
@@ -2687,6 +2706,7 @@ module VexiiRiscv (
   reg                 execute_ctrl2_up_late0_IntAluPlugin_SEL_lane0;
   reg                 execute_ctrl2_up_early0_DivPlugin_SEL_lane0;
   reg                 execute_ctrl2_up_early0_MulPlugin_SEL_lane0;
+  reg                 execute_ctrl2_up_early0_AesZknPlugin_SEL_lane0;
   reg                 execute_ctrl2_up_early0_BranchPlugin_SEL_lane0;
   reg        [1:0]    execute_ctrl2_up_AguPlugin_SIZE_lane0;
   reg                 execute_ctrl2_up_COMPLETED_lane1;
@@ -2828,6 +2848,7 @@ module VexiiRiscv (
   reg                 execute_ctrl1_up_early0_EnvPlugin_SEL_lane0;
   reg                 execute_ctrl1_up_early0_DivPlugin_SEL_lane0;
   reg                 execute_ctrl1_up_early0_MulPlugin_SEL_lane0;
+  reg                 execute_ctrl1_up_early0_AesZknPlugin_SEL_lane0;
   reg                 execute_ctrl1_up_early0_BranchPlugin_SEL_lane0;
   reg                 execute_ctrl1_up_early0_BarrelShifterPlugin_SEL_lane0;
   reg                 execute_ctrl1_up_early0_IntAluPlugin_SEL_lane0;
@@ -3176,6 +3197,7 @@ module VexiiRiscv (
   reg                 execute_ctrl0_down_early0_EnvPlugin_SEL_lane0;
   reg                 execute_ctrl0_down_early0_DivPlugin_SEL_lane0;
   reg                 execute_ctrl0_down_early0_MulPlugin_SEL_lane0;
+  reg                 execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0;
   reg                 execute_ctrl0_down_early0_BranchPlugin_SEL_lane0;
   reg                 execute_ctrl0_down_early0_BarrelShifterPlugin_SEL_lane0;
   reg                 execute_ctrl0_down_early0_IntAluPlugin_SEL_lane0;
@@ -3191,7 +3213,6 @@ module VexiiRiscv (
   wire       [31:0]   execute_ctrl1_integer_RS2_lane0_bypass;
   wire       [4:0]    execute_ctrl1_down_RS2_PHYS_lane0;
   wire       [4:0]    execute_ctrl0_down_RS2_PHYS_lane0;
-  reg        [31:0]   execute_ctrl2_up_integer_RS1_lane0;
   wire       [31:0]   execute_ctrl2_integer_RS1_lane0_bypass;
   wire       [4:0]    execute_ctrl2_down_RS1_PHYS_lane0;
   wire       [31:0]   execute_ctrl1_down_integer_RS1_lane0;
@@ -3480,7 +3501,6 @@ module VexiiRiscv (
   reg        [31:0]   execute_ctrl3_up_lane0_integer_WriteBackPlugin_logic_DATA_lane0;
   wire       [15:0]   execute_ctrl2_down_Decode_UOP_ID_lane0;
   wire                execute_ctrl2_down_COMMIT_lane0;
-  wire                execute_ctrl2_down_isReady;
   wire                execute_ctrl2_down_LANE_SEL_lane0;
   wire       [31:0]   execute_ctrl2_down_lane0_integer_WriteBackPlugin_logic_DATA_lane0;
   wire       [31:0]   execute_ctrl2_lane0_integer_WriteBackPlugin_logic_DATA_lane0_bypass;
@@ -3810,6 +3830,11 @@ module VexiiRiscv (
   wire                execute_ctrl1_down_TRAP_lane0;
   reg                 execute_ctrl1_TRAP_lane0_bypass;
   wire                execute_ctrl1_down_early0_EnvPlugin_SEL_lane0;
+  wire       [31:0]   execute_ctrl3_down_early0_AesZknPlugin_logic_onData_CALC_lane0;
+  wire                execute_ctrl3_down_early0_AesZknPlugin_SEL_lane0;
+  wire       [31:0]   execute_ctrl2_down_early0_AesZknPlugin_logic_onData_CALC_lane0;
+  reg        [31:0]   execute_ctrl2_up_integer_RS1_lane0;
+  wire                execute_ctrl2_down_isReady;
   wire       [31:0]   fetch_logic_ctrls_2_down_Prediction_WORD_JUMP_PC;
   reg        [3:0]    fetch_logic_ctrls_2_down_Prediction_WORD_SLICES_TAKEN;
   reg        [3:0]    fetch_logic_ctrls_2_down_Prediction_WORD_SLICES_BRANCH;
@@ -4542,6 +4567,8 @@ module VexiiRiscv (
   wire       [11:0]   early0_BranchPlugin_logic_historyPort_payload_history;
   wire       [0:0]    early0_BranchPlugin_logic_historyPort_payload_age;
   wire                early0_BranchPlugin_logic_flushPort_valid;
+  wire                early0_AesZknPlugin_logic_wb_valid;
+  wire       [31:0]   early0_AesZknPlugin_logic_wb_payload;
   reg                 LsuPlugin_logic_events_waiting;
   reg                 LsuPlugin_logic_trapPort_valid;
   reg                 LsuPlugin_logic_trapPort_payload_exception;
@@ -6021,7 +6048,7 @@ module VexiiRiscv (
   wire       [31:0]   lane0_IntFormatPlugin_logic_stages_0_raw;
   wire                lane0_IntFormatPlugin_logic_stages_1_wb_valid;
   reg        [31:0]   lane0_IntFormatPlugin_logic_stages_1_wb_payload;
-  wire       [3:0]    lane0_IntFormatPlugin_logic_stages_1_hits;
+  wire       [4:0]    lane0_IntFormatPlugin_logic_stages_1_hits;
   wire       [31:0]   lane0_IntFormatPlugin_logic_stages_1_raw;
   wire                lane0_IntFormatPlugin_logic_stages_1_segments_0_sign_sels_0;
   reg                 _zz_lane0_IntFormatPlugin_logic_stages_1_segments_0_sign_value;
@@ -6389,6 +6416,51 @@ module VexiiRiscv (
   wire       [7:0]    AlignerPlugin_logic_buffer_usedMask;
   wire                AlignerPlugin_logic_buffer_haltUp;
   wire                when_AlignerPlugin_l256;
+  wire       [1:0]    early0_AesZknPlugin_logic_onRead_byteSel;
+  wire                early0_AesZknPlugin_logic_onRead_bankSel;
+  wire       [8:0]    early0_AesZknPlugin_logic_onRead_romAddress;
+  wire       [31:0]   early0_AesZknPlugin_logic_onData_rom_data;
+  wire       [7:0]    early0_AesZknPlugin_logic_onData_rom_bytes_0;
+  wire       [7:0]    early0_AesZknPlugin_logic_onData_rom_bytes_1;
+  wire       [7:0]    early0_AesZknPlugin_logic_onData_rom_bytes_2;
+  wire       [7:0]    early0_AesZknPlugin_logic_onData_rom_bytes_3;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_0_0;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_0_1;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_0_2;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_0_3;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_1_0;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_1_1;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_1_2;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_1_3;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_2_0;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_2_1;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_2_2;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_2_3;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_3_0;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_3_1;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_3_2;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_remap_3_3;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_address;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_output_0;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_output_1;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_output_2;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_rom_output_3;
+  reg        [3:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_zero;
+  wire       [1:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel;
+  reg        [7:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_output_0;
+  reg        [7:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_output_1;
+  reg        [7:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_output_2;
+  reg        [7:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_output_3;
+  reg        [1:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0;
+  reg        [1:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1;
+  reg        [1:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2;
+  reg        [1:0]    early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3;
+  wire                when_AesZknPlugin_l81;
+  wire                when_AesZknPlugin_l89;
+  wire                when_AesZknPlugin_l89_1;
+  wire                when_AesZknPlugin_l89_2;
+  wire                when_AesZknPlugin_l89_3;
+  wire       [31:0]   early0_AesZknPlugin_logic_onData_xored;
   wire       [1:0]    early0_EnvPlugin_logic_exe_xretPriv;
   reg                 early0_EnvPlugin_logic_exe_commit;
   wire                early0_EnvPlugin_logic_exe_retKo;
@@ -9906,8 +9978,10 @@ module VexiiRiscv (
   assign _zz_execute_ctrl0_down_early0_BarrelShifterPlugin_SEL_lane0_1 = (|{((execute_lane0_logic_decoding_decodingBits & 33'h100003034) == 33'h100001010),((execute_lane0_logic_decoding_decodingBits & 33'h102003054) == 33'h100001010)});
   assign _zz_execute_ctrl0_down_early0_BranchPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_BranchPlugin_SEL_lane0_1[0];
   assign _zz_execute_ctrl0_down_early0_BranchPlugin_SEL_lane0_1 = (|_zz_execute_ctrl0_down_BYPASSED_AT_1_lane0);
+  assign _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0_1[0];
+  assign _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0_1 = (|((execute_lane0_logic_decoding_decodingBits & 33'h030003034) == 33'h020000030));
   assign _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0_1[0];
-  assign _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0_1 = (|((execute_lane0_logic_decoding_decodingBits & 33'h002004074) == 33'h002000030));
+  assign _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0_1 = (|((execute_lane0_logic_decoding_decodingBits & 33'h022004074) == 33'h002000030));
   assign _zz_execute_ctrl0_down_early0_DivPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_DivPlugin_SEL_lane0_1[0];
   assign _zz_execute_ctrl0_down_early0_DivPlugin_SEL_lane0_1 = (|_zz_execute_ctrl0_down_lane0_logic_completions_onCtrl_2_ENABLE_lane0);
   assign _zz_execute_ctrl0_down_early0_EnvPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_EnvPlugin_SEL_lane0_1[0];
@@ -10347,24 +10421,25 @@ module VexiiRiscv (
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_14 = 32'h00006213;
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_15 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h0000747f) == 32'h00006413);
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_16 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h000070ff) == 32'h00006093);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_17 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h1800707f) == 32'h0000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hfc00007f) == 32'h00000033),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_18) == 32'h0800202f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_19 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_20),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_21,{_zz_decode_ctrls_1_down_Decode_LEGAL_0_22,_zz_decode_ctrls_1_down_Decode_LEGAL_0_23}}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_18 = 32'he800707f;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_19 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hfc00305f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_20 = 32'h00001013;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_21 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbc00707f) == 32'h00005013);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_22 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbe00707f) == 32'h00005033);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_23 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h00807fff) == 32'h00806013),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h00407fff) == 32'h00406013),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_24) == 32'h01006013),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_25 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_26),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_27,{_zz_decode_ctrls_1_down_Decode_LEGAL_0_28,_zz_decode_ctrls_1_down_Decode_LEGAL_0_29}}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_24 = 32'h01007fff;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_25 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbe00707f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_26 = 32'h00000033;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_27 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h01c07fff) == 32'h00006013);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_28 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hf9f0707f) == 32'h1000202f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_29 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hfe007fff) == 32'h12000073),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffd07fff) == 32'h0000200f),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_30) == 32'h0000200f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_31 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_32),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_33,_zz_decode_ctrls_1_down_Decode_LEGAL_0_34}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_30 = 32'hffe07fff;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_31 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hdfffffff);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_32 = 32'h10200073;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_33 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffefffff) == 32'h00000073);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_34 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffffffff) == 32'h10500073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_17 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h1800707f) == 32'h0000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h3200707f) == 32'h22000033),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_18) == 32'h00000033),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_19 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_20),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_21,{_zz_decode_ctrls_1_down_Decode_LEGAL_0_22,_zz_decode_ctrls_1_down_Decode_LEGAL_0_23}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_18 = 32'hfc00007f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_19 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'he800707f);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_20 = 32'h0800202f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_21 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hfc00305f) == 32'h00001013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_22 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbc00707f) == 32'h00005013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_23 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbe00707f) == 32'h00005033),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h00807fff) == 32'h00806013),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_24) == 32'h00406013),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_25 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_26),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_27,{_zz_decode_ctrls_1_down_Decode_LEGAL_0_28,_zz_decode_ctrls_1_down_Decode_LEGAL_0_29}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_24 = 32'h00407fff;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_25 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h01007fff);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_26 = 32'h01006013;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_27 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hbe00707f) == 32'h00000033);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_28 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'h01c07fff) == 32'h00006013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_29 = {((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hf9f0707f) == 32'h1000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hfe007fff) == 32'h12000073),{((decode_ctrls_1_down_Decode_INSTRUCTION_0 & _zz_decode_ctrls_1_down_Decode_LEGAL_0_30) == 32'h0000200f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_0_31 == _zz_decode_ctrls_1_down_Decode_LEGAL_0_32),{_zz_decode_ctrls_1_down_Decode_LEGAL_0_33,{_zz_decode_ctrls_1_down_Decode_LEGAL_0_34,_zz_decode_ctrls_1_down_Decode_LEGAL_0_35}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_30 = 32'hffd07fff;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_31 = (decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffe07fff);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_32 = 32'h0000200f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_33 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hdfffffff) == 32'h10200073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_34 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffefffff) == 32'h00000073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_0_35 = ((decode_ctrls_1_down_Decode_INSTRUCTION_0 & 32'hffffffff) == 32'h10500073);
   assign _zz_decode_ctrls_1_down_RD_ENABLE_1_1 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h00000070);
   assign _zz_decode_ctrls_1_down_RD_ENABLE_1_2 = 32'h00000030;
   assign _zz_decode_ctrls_1_down_RD_ENABLE_1_3 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h00006040) == 32'h00004000);
@@ -10393,24 +10468,25 @@ module VexiiRiscv (
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_14 = 32'h00006213;
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_15 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h0000747f) == 32'h00006413);
   assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_16 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h000070ff) == 32'h00006093);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_17 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h1800707f) == 32'h0000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hfc00007f) == 32'h00000033),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_18) == 32'h0800202f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_19 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_20),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_21,{_zz_decode_ctrls_1_down_Decode_LEGAL_1_22,_zz_decode_ctrls_1_down_Decode_LEGAL_1_23}}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_18 = 32'he800707f;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_19 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hfc00305f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_20 = 32'h00001013;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_21 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbc00707f) == 32'h00005013);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_22 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbe00707f) == 32'h00005033);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_23 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h00807fff) == 32'h00806013),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h00407fff) == 32'h00406013),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_24) == 32'h01006013),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_25 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_26),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_27,{_zz_decode_ctrls_1_down_Decode_LEGAL_1_28,_zz_decode_ctrls_1_down_Decode_LEGAL_1_29}}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_24 = 32'h01007fff;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_25 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbe00707f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_26 = 32'h00000033;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_27 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h01c07fff) == 32'h00006013);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_28 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hf9f0707f) == 32'h1000202f);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_29 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hfe007fff) == 32'h12000073),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffd07fff) == 32'h0000200f),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_30) == 32'h0000200f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_31 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_32),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_33,_zz_decode_ctrls_1_down_Decode_LEGAL_1_34}}}}};
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_30 = 32'hffe07fff;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_31 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hdfffffff);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_32 = 32'h10200073;
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_33 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffefffff) == 32'h00000073);
-  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_34 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffffffff) == 32'h10500073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_17 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h1800707f) == 32'h0000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h3200707f) == 32'h22000033),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_18) == 32'h00000033),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_19 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_20),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_21,{_zz_decode_ctrls_1_down_Decode_LEGAL_1_22,_zz_decode_ctrls_1_down_Decode_LEGAL_1_23}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_18 = 32'hfc00007f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_19 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'he800707f);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_20 = 32'h0800202f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_21 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hfc00305f) == 32'h00001013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_22 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbc00707f) == 32'h00005013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_23 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbe00707f) == 32'h00005033),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h00807fff) == 32'h00806013),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_24) == 32'h00406013),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_25 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_26),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_27,{_zz_decode_ctrls_1_down_Decode_LEGAL_1_28,_zz_decode_ctrls_1_down_Decode_LEGAL_1_29}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_24 = 32'h00407fff;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_25 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h01007fff);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_26 = 32'h01006013;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_27 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hbe00707f) == 32'h00000033);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_28 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'h01c07fff) == 32'h00006013);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_29 = {((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hf9f0707f) == 32'h1000202f),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hfe007fff) == 32'h12000073),{((decode_ctrls_1_down_Decode_INSTRUCTION_1 & _zz_decode_ctrls_1_down_Decode_LEGAL_1_30) == 32'h0000200f),{(_zz_decode_ctrls_1_down_Decode_LEGAL_1_31 == _zz_decode_ctrls_1_down_Decode_LEGAL_1_32),{_zz_decode_ctrls_1_down_Decode_LEGAL_1_33,{_zz_decode_ctrls_1_down_Decode_LEGAL_1_34,_zz_decode_ctrls_1_down_Decode_LEGAL_1_35}}}}}};
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_30 = 32'hffd07fff;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_31 = (decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffe07fff);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_32 = 32'h0000200f;
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_33 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hdfffffff) == 32'h10200073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_34 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffefffff) == 32'h00000073);
+  assign _zz_decode_ctrls_1_down_Decode_LEGAL_1_35 = ((decode_ctrls_1_down_Decode_INSTRUCTION_1 & 32'hffffffff) == 32'h10500073);
   assign _zz_DispatchPlugin_logic_rsHazardChecker_0_onLl_0_onRs_0_hazard = (DispatchPlugin_logic_candidates_0_ctx_hm_DispatchPlugin_logic_hcs_0_onRs_0_ENABLES_0 && execute_ctrl1_up_RD_ENABLE_lane1);
   assign _zz_DispatchPlugin_logic_rsHazardChecker_0_onLl_0_onRs_0_hazard_1 = (execute_ctrl1_up_RD_PHYS_lane1 == DispatchPlugin_logic_candidates_0_ctx_hm_RS1_PHYS);
   assign _zz_DispatchPlugin_logic_rsHazardChecker_0_onLl_0_onRs_0_hazard_2 = ((DispatchPlugin_logic_candidates_0_ctx_hm_DispatchPlugin_logic_hcs_0_onRs_0_ENABLES_0 && execute_ctrl2_up_RD_ENABLE_lane0) && (execute_ctrl2_up_RD_PHYS_lane0 == DispatchPlugin_logic_candidates_0_ctx_hm_RS1_PHYS));
@@ -11705,6 +11781,12 @@ end
     .clk                 (clk                                                              ), //i
     .reset               (reset                                                            )  //i
   );
+  early0_AesZknPlugin_logic_onData_rom_storage early0_AesZknPlugin_logic_onData_rom_storage_1 (
+    .clk  (clk                                                      ), //i
+    .en   (early0_AesZknPlugin_logic_onData_rom_storage_1_en        ), //i
+    .addr (early0_AesZknPlugin_logic_onRead_romAddress[8:0]         ), //i
+    .data (early0_AesZknPlugin_logic_onData_rom_storage_1_data[31:0])  //o
+  );
   always @(*) begin
     case(LsuL1Plugin_logic_refill_read_arbiter_sel)
       2'b00 : _zz_LsuL1Plugin_logic_refill_read_cmdAddress = LsuL1Plugin_logic_refill_slots_0_address[31 : 6];
@@ -11980,6 +12062,80 @@ end
       3'b101 : _zz_AlignerPlugin_logic_feeder_lanes_1_withRvc_dec_inst_29 = 3'b000;
       3'b110 : _zz_AlignerPlugin_logic_feeder_lanes_1_withRvc_dec_inst_29 = 3'b010;
       default : _zz_AlignerPlugin_logic_feeder_lanes_1_withRvc_dec_inst_29 = 3'b011;
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onRead_byteSel)
+      2'b00 : _zz_early0_AesZknPlugin_logic_onRead_romAddress = execute_ctrl1_up_integer_RS2_lane0[7 : 0];
+      2'b01 : _zz_early0_AesZknPlugin_logic_onRead_romAddress = execute_ctrl1_up_integer_RS2_lane0[15 : 8];
+      2'b10 : _zz_early0_AesZknPlugin_logic_onRead_romAddress = execute_ctrl1_up_integer_RS2_lane0[23 : 16];
+      default : _zz_early0_AesZknPlugin_logic_onRead_romAddress = execute_ctrl1_up_integer_RS2_lane0[31 : 24];
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_rom_address)
+      2'b00 : begin
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_0 = early0_AesZknPlugin_logic_onData_rom_remap_0_0;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_1 = early0_AesZknPlugin_logic_onData_rom_remap_0_1;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_2 = early0_AesZknPlugin_logic_onData_rom_remap_0_2;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_3 = early0_AesZknPlugin_logic_onData_rom_remap_0_3;
+      end
+      2'b01 : begin
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_0 = early0_AesZknPlugin_logic_onData_rom_remap_1_0;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_1 = early0_AesZknPlugin_logic_onData_rom_remap_1_1;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_2 = early0_AesZknPlugin_logic_onData_rom_remap_1_2;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_3 = early0_AesZknPlugin_logic_onData_rom_remap_1_3;
+      end
+      2'b10 : begin
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_0 = early0_AesZknPlugin_logic_onData_rom_remap_2_0;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_1 = early0_AesZknPlugin_logic_onData_rom_remap_2_1;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_2 = early0_AesZknPlugin_logic_onData_rom_remap_2_2;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_3 = early0_AesZknPlugin_logic_onData_rom_remap_2_3;
+      end
+      default : begin
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_0 = early0_AesZknPlugin_logic_onData_rom_remap_3_0;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_1 = early0_AesZknPlugin_logic_onData_rom_remap_3_1;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_2 = early0_AesZknPlugin_logic_onData_rom_remap_3_2;
+        _zz_early0_AesZknPlugin_logic_onData_rom_output_3 = early0_AesZknPlugin_logic_onData_rom_remap_3_3;
+      end
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0)
+      2'b00 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = early0_AesZknPlugin_logic_onData_rom_bytes_0;
+      2'b01 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = early0_AesZknPlugin_logic_onData_rom_bytes_1;
+      2'b10 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = early0_AesZknPlugin_logic_onData_rom_bytes_2;
+      default : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = early0_AesZknPlugin_logic_onData_rom_bytes_3;
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1)
+      2'b00 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = early0_AesZknPlugin_logic_onData_rom_bytes_0;
+      2'b01 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = early0_AesZknPlugin_logic_onData_rom_bytes_1;
+      2'b10 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = early0_AesZknPlugin_logic_onData_rom_bytes_2;
+      default : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = early0_AesZknPlugin_logic_onData_rom_bytes_3;
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2)
+      2'b00 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = early0_AesZknPlugin_logic_onData_rom_bytes_0;
+      2'b01 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = early0_AesZknPlugin_logic_onData_rom_bytes_1;
+      2'b10 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = early0_AesZknPlugin_logic_onData_rom_bytes_2;
+      default : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = early0_AesZknPlugin_logic_onData_rom_bytes_3;
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3)
+      2'b00 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = early0_AesZknPlugin_logic_onData_rom_bytes_0;
+      2'b01 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = early0_AesZknPlugin_logic_onData_rom_bytes_1;
+      2'b10 : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = early0_AesZknPlugin_logic_onData_rom_bytes_2;
+      default : _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = early0_AesZknPlugin_logic_onData_rom_bytes_3;
     endcase
   end
 
@@ -16480,9 +16636,9 @@ end
   assign lane0_IntFormatPlugin_logic_stages_0_wb_valid = (execute_ctrl1_up_LANE_SEL_lane0 && (|lane0_IntFormatPlugin_logic_stages_0_hits));
   assign lane0_IntFormatPlugin_logic_stages_0_raw = ((lane0_IntFormatPlugin_logic_stages_0_hits[0] ? early0_IntAluPlugin_logic_wb_payload : 32'h0) | (lane0_IntFormatPlugin_logic_stages_0_hits[1] ? early0_BarrelShifterPlugin_logic_wb_payload : 32'h0));
   assign lane0_IntFormatPlugin_logic_stages_0_wb_payload = lane0_IntFormatPlugin_logic_stages_0_raw;
-  assign lane0_IntFormatPlugin_logic_stages_1_hits = {LsuPlugin_logic_iwb_valid,{late0_BarrelShifterPlugin_logic_wb_valid,{late0_IntAluPlugin_logic_wb_valid,early0_MulPlugin_logic_formatBus_valid}}};
+  assign lane0_IntFormatPlugin_logic_stages_1_hits = {LsuPlugin_logic_iwb_valid,{late0_BarrelShifterPlugin_logic_wb_valid,{late0_IntAluPlugin_logic_wb_valid,{early0_MulPlugin_logic_formatBus_valid,early0_AesZknPlugin_logic_wb_valid}}}};
   assign lane0_IntFormatPlugin_logic_stages_1_wb_valid = (execute_ctrl3_up_LANE_SEL_lane0 && (|lane0_IntFormatPlugin_logic_stages_1_hits));
-  assign lane0_IntFormatPlugin_logic_stages_1_raw = (((lane0_IntFormatPlugin_logic_stages_1_hits[0] ? early0_MulPlugin_logic_formatBus_payload : 32'h0) | (lane0_IntFormatPlugin_logic_stages_1_hits[1] ? late0_IntAluPlugin_logic_wb_payload : 32'h0)) | ((lane0_IntFormatPlugin_logic_stages_1_hits[2] ? late0_BarrelShifterPlugin_logic_wb_payload : 32'h0) | (lane0_IntFormatPlugin_logic_stages_1_hits[3] ? LsuPlugin_logic_iwb_payload : 32'h0)));
+  assign lane0_IntFormatPlugin_logic_stages_1_raw = ((((lane0_IntFormatPlugin_logic_stages_1_hits[0] ? early0_AesZknPlugin_logic_wb_payload : 32'h0) | (lane0_IntFormatPlugin_logic_stages_1_hits[1] ? early0_MulPlugin_logic_formatBus_payload : 32'h0)) | ((lane0_IntFormatPlugin_logic_stages_1_hits[2] ? late0_IntAluPlugin_logic_wb_payload : 32'h0) | (lane0_IntFormatPlugin_logic_stages_1_hits[3] ? late0_BarrelShifterPlugin_logic_wb_payload : 32'h0))) | (lane0_IntFormatPlugin_logic_stages_1_hits[4] ? LsuPlugin_logic_iwb_payload : 32'h0));
   always @(*) begin
     lane0_IntFormatPlugin_logic_stages_1_wb_payload = lane0_IntFormatPlugin_logic_stages_1_raw;
     if(lane0_IntFormatPlugin_logic_stages_1_segments_0_doIt) begin
@@ -17541,6 +17697,149 @@ end
   assign AlignerPlugin_logic_buffer_haltUp = ((|(AlignerPlugin_logic_buffer_mask & (~ (AlignerPlugin_logic_buffer_downFire ? AlignerPlugin_logic_buffer_usedMask[3 : 0] : 4'b0000)))) || AlignerPlugin_api_haltIt);
   assign fetch_logic_ctrls_2_down_ready = ((! fetch_logic_ctrls_2_down_valid) || (! AlignerPlugin_logic_buffer_haltUp));
   assign when_AlignerPlugin_l256 = ((fetch_logic_ctrls_2_down_isValid && fetch_logic_ctrls_2_down_isReady) && (! fetch_logic_ctrls_2_down_isCancel));
+  assign early0_AesZknPlugin_logic_onRead_byteSel = execute_ctrl1_down_Decode_UOP_lane0[31 : 30];
+  assign early0_AesZknPlugin_logic_onRead_bankSel = (execute_ctrl1_down_Decode_UOP_lane0[27] && execute_ctrl1_down_Decode_UOP_lane0[26]);
+  assign early0_AesZknPlugin_logic_onRead_romAddress = {early0_AesZknPlugin_logic_onRead_bankSel,_zz_early0_AesZknPlugin_logic_onRead_romAddress};
+  assign early0_AesZknPlugin_logic_onData_rom_data = early0_AesZknPlugin_logic_onData_rom_storage_1_data;
+  assign early0_AesZknPlugin_logic_onData_rom_bytes_0 = early0_AesZknPlugin_logic_onData_rom_data[7 : 0];
+  assign early0_AesZknPlugin_logic_onData_rom_bytes_1 = early0_AesZknPlugin_logic_onData_rom_data[15 : 8];
+  assign early0_AesZknPlugin_logic_onData_rom_bytes_2 = early0_AesZknPlugin_logic_onData_rom_data[23 : 16];
+  assign early0_AesZknPlugin_logic_onData_rom_bytes_3 = early0_AesZknPlugin_logic_onData_rom_data[31 : 24];
+  assign early0_AesZknPlugin_logic_onData_rom_remap_0_0 = 2'b10;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_0_1 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_0_2 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_0_3 = 2'b01;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_1_0 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_1_1 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_1_2 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_1_3 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_2_0 = 2'b11;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_2_1 = 2'b10;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_2_2 = 2'b01;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_2_3 = 2'b00;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_3_0 = 2'b11;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_3_1 = 2'b11;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_3_2 = 2'b11;
+  assign early0_AesZknPlugin_logic_onData_rom_remap_3_3 = 2'b11;
+  assign early0_AesZknPlugin_logic_onData_rom_address = {execute_ctrl2_down_Decode_UOP_lane0[27],(! execute_ctrl2_down_Decode_UOP_lane0[26])};
+  assign early0_AesZknPlugin_logic_onData_rom_output_0 = _zz_early0_AesZknPlugin_logic_onData_rom_output_0;
+  assign early0_AesZknPlugin_logic_onData_rom_output_1 = _zz_early0_AesZknPlugin_logic_onData_rom_output_1;
+  assign early0_AesZknPlugin_logic_onData_rom_output_2 = _zz_early0_AesZknPlugin_logic_onData_rom_output_2;
+  assign early0_AesZknPlugin_logic_onData_rom_output_3 = _zz_early0_AesZknPlugin_logic_onData_rom_output_3;
+  always @(*) begin
+    early0_AesZknPlugin_logic_onData_wordDesuffle_zero = 4'b0000;
+    if(when_AesZknPlugin_l81) begin
+      early0_AesZknPlugin_logic_onData_wordDesuffle_zero = 4'b1111;
+      early0_AesZknPlugin_logic_onData_wordDesuffle_zero[early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel] = 1'b0;
+    end
+  end
+
+  assign early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel = execute_ctrl2_down_Decode_UOP_lane0[31 : 30];
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel)
+      2'b00 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0 = early0_AesZknPlugin_logic_onData_rom_output_3;
+      end
+      2'b01 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0 = early0_AesZknPlugin_logic_onData_rom_output_0;
+      end
+      2'b10 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0 = early0_AesZknPlugin_logic_onData_rom_output_1;
+      end
+      default : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_0 = early0_AesZknPlugin_logic_onData_rom_output_2;
+      end
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel)
+      2'b00 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1 = early0_AesZknPlugin_logic_onData_rom_output_2;
+      end
+      2'b01 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1 = early0_AesZknPlugin_logic_onData_rom_output_3;
+      end
+      2'b10 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1 = early0_AesZknPlugin_logic_onData_rom_output_0;
+      end
+      default : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_1 = early0_AesZknPlugin_logic_onData_rom_output_1;
+      end
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel)
+      2'b00 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2 = early0_AesZknPlugin_logic_onData_rom_output_1;
+      end
+      2'b01 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2 = early0_AesZknPlugin_logic_onData_rom_output_2;
+      end
+      2'b10 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2 = early0_AesZknPlugin_logic_onData_rom_output_3;
+      end
+      default : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_2 = early0_AesZknPlugin_logic_onData_rom_output_0;
+      end
+    endcase
+  end
+
+  always @(*) begin
+    case(early0_AesZknPlugin_logic_onData_wordDesuffle_byteSel)
+      2'b00 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3 = early0_AesZknPlugin_logic_onData_rom_output_0;
+      end
+      2'b01 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3 = early0_AesZknPlugin_logic_onData_rom_output_1;
+      end
+      2'b10 : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3 = early0_AesZknPlugin_logic_onData_rom_output_2;
+      end
+      default : begin
+        early0_AesZknPlugin_logic_onData_wordDesuffle_sel_3 = early0_AesZknPlugin_logic_onData_rom_output_3;
+      end
+    endcase
+  end
+
+  assign when_AesZknPlugin_l81 = (! execute_ctrl2_down_Decode_UOP_lane0[26]);
+  always @(*) begin
+    early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_0;
+    if(when_AesZknPlugin_l89) begin
+      early0_AesZknPlugin_logic_onData_wordDesuffle_output_0 = 8'h0;
+    end
+  end
+
+  assign when_AesZknPlugin_l89 = early0_AesZknPlugin_logic_onData_wordDesuffle_zero[0];
+  always @(*) begin
+    early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_1;
+    if(when_AesZknPlugin_l89_1) begin
+      early0_AesZknPlugin_logic_onData_wordDesuffle_output_1 = 8'h0;
+    end
+  end
+
+  assign when_AesZknPlugin_l89_1 = early0_AesZknPlugin_logic_onData_wordDesuffle_zero[1];
+  always @(*) begin
+    early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_2;
+    if(when_AesZknPlugin_l89_2) begin
+      early0_AesZknPlugin_logic_onData_wordDesuffle_output_2 = 8'h0;
+    end
+  end
+
+  assign when_AesZknPlugin_l89_2 = early0_AesZknPlugin_logic_onData_wordDesuffle_zero[2];
+  always @(*) begin
+    early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = _zz_early0_AesZknPlugin_logic_onData_wordDesuffle_output_3;
+    if(when_AesZknPlugin_l89_3) begin
+      early0_AesZknPlugin_logic_onData_wordDesuffle_output_3 = 8'h0;
+    end
+  end
+
+  assign when_AesZknPlugin_l89_3 = early0_AesZknPlugin_logic_onData_wordDesuffle_zero[3];
+  assign early0_AesZknPlugin_logic_onData_xored = ({early0_AesZknPlugin_logic_onData_wordDesuffle_output_3,{early0_AesZknPlugin_logic_onData_wordDesuffle_output_2,{early0_AesZknPlugin_logic_onData_wordDesuffle_output_1,early0_AesZknPlugin_logic_onData_wordDesuffle_output_0}}} ^ execute_ctrl2_up_integer_RS1_lane0);
+  assign execute_ctrl2_down_early0_AesZknPlugin_logic_onData_CALC_lane0 = early0_AesZknPlugin_logic_onData_xored;
+  assign early0_AesZknPlugin_logic_wb_valid = execute_ctrl3_down_early0_AesZknPlugin_SEL_lane0;
+  assign early0_AesZknPlugin_logic_wb_payload = execute_ctrl3_down_early0_AesZknPlugin_logic_onData_CALC_lane0;
   assign early0_EnvPlugin_logic_exe_xretPriv = execute_ctrl1_down_Decode_UOP_lane0[29 : 28];
   always @(*) begin
     early0_EnvPlugin_logic_exe_commit = 1'b0;
@@ -23738,6 +24037,13 @@ end
   end
 
   always @(*) begin
+    execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0[0];
+    if(execute_ctrl0_down_TRAP_lane0) begin
+      execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0 = 1'b0;
+    end
+  end
+
+  always @(*) begin
     execute_ctrl0_down_early0_MulPlugin_SEL_lane0 = _zz_execute_ctrl0_down_early0_MulPlugin_SEL_lane0[0];
     if(execute_ctrl0_down_TRAP_lane0) begin
       execute_ctrl0_down_early0_MulPlugin_SEL_lane0 = 1'b0;
@@ -24872,6 +25178,7 @@ end
   assign execute_ctrl1_down_early0_IntAluPlugin_SEL_lane0 = execute_ctrl1_up_early0_IntAluPlugin_SEL_lane0;
   assign execute_ctrl1_down_early0_BarrelShifterPlugin_SEL_lane0 = execute_ctrl1_up_early0_BarrelShifterPlugin_SEL_lane0;
   assign execute_ctrl1_down_early0_BranchPlugin_SEL_lane0 = execute_ctrl1_up_early0_BranchPlugin_SEL_lane0;
+  assign execute_ctrl1_down_early0_AesZknPlugin_SEL_lane0 = execute_ctrl1_up_early0_AesZknPlugin_SEL_lane0;
   assign execute_ctrl1_down_early0_MulPlugin_SEL_lane0 = execute_ctrl1_up_early0_MulPlugin_SEL_lane0;
   assign execute_ctrl1_down_early0_DivPlugin_SEL_lane0 = execute_ctrl1_up_early0_DivPlugin_SEL_lane0;
   assign execute_ctrl1_down_early0_EnvPlugin_SEL_lane0 = execute_ctrl1_up_early0_EnvPlugin_SEL_lane0;
@@ -24993,6 +25300,7 @@ end
   assign execute_ctrl2_down_COMPLETED_lane1 = execute_ctrl2_up_COMPLETED_lane1;
   assign execute_ctrl2_down_AguPlugin_SIZE_lane0 = execute_ctrl2_up_AguPlugin_SIZE_lane0;
   assign execute_ctrl2_down_early0_BranchPlugin_SEL_lane0 = execute_ctrl2_up_early0_BranchPlugin_SEL_lane0;
+  assign execute_ctrl2_down_early0_AesZknPlugin_SEL_lane0 = execute_ctrl2_up_early0_AesZknPlugin_SEL_lane0;
   assign execute_ctrl2_down_early0_MulPlugin_SEL_lane0 = execute_ctrl2_up_early0_MulPlugin_SEL_lane0;
   assign execute_ctrl2_down_early0_DivPlugin_SEL_lane0 = execute_ctrl2_up_early0_DivPlugin_SEL_lane0;
   assign execute_ctrl2_down_late0_IntAluPlugin_SEL_lane0 = execute_ctrl2_up_late0_IntAluPlugin_SEL_lane0;
@@ -25155,6 +25463,7 @@ end
   assign execute_ctrl3_down_AguPlugin_SIZE_lane0 = execute_ctrl3_up_AguPlugin_SIZE_lane0;
   assign execute_ctrl3_down_integer_RS2_lane0 = execute_ctrl3_up_integer_RS2_lane0;
   assign execute_ctrl3_down_early0_BranchPlugin_SEL_lane0 = execute_ctrl3_up_early0_BranchPlugin_SEL_lane0;
+  assign execute_ctrl3_down_early0_AesZknPlugin_SEL_lane0 = execute_ctrl3_up_early0_AesZknPlugin_SEL_lane0;
   assign execute_ctrl3_down_early0_MulPlugin_SEL_lane0 = execute_ctrl3_up_early0_MulPlugin_SEL_lane0;
   assign execute_ctrl3_down_late0_IntAluPlugin_SEL_lane0 = execute_ctrl3_up_late0_IntAluPlugin_SEL_lane0;
   assign execute_ctrl3_down_late0_BarrelShifterPlugin_SEL_lane0 = execute_ctrl3_up_late0_BarrelShifterPlugin_SEL_lane0;
@@ -25272,6 +25581,7 @@ end
   assign execute_ctrl3_down_late0_SrcPlugin_SRC2_lane0 = execute_ctrl3_up_late0_SrcPlugin_SRC2_lane0;
   assign execute_ctrl3_down_late1_SrcPlugin_SRC1_lane1 = execute_ctrl3_up_late1_SrcPlugin_SRC1_lane1;
   assign execute_ctrl3_down_late1_SrcPlugin_SRC2_lane1 = execute_ctrl3_up_late1_SrcPlugin_SRC2_lane1;
+  assign execute_ctrl3_down_early0_AesZknPlugin_logic_onData_CALC_lane0 = execute_ctrl3_up_early0_AesZknPlugin_logic_onData_CALC_lane0;
   assign execute_ctrl3_down_MMU_BYPASS_TRANSLATION_lane0 = execute_ctrl3_up_MMU_BYPASS_TRANSLATION_lane0;
   assign execute_ctrl4_up_ready = execute_ctrl4_down_isReady;
   assign execute_ctrl4_down_LANE_SEL_lane0 = execute_ctrl4_up_LANE_SEL_lane0;
@@ -25733,6 +26043,7 @@ end
   assign CsrAccessPlugin_logic_fsm_onEntry_READ = ((CsrAccessPlugin_logic_fsm_stateNext == CsrAccessPlugin_logic_fsm_READ) && (CsrAccessPlugin_logic_fsm_stateReg != CsrAccessPlugin_logic_fsm_READ));
   assign CsrAccessPlugin_logic_fsm_onEntry_WRITE = ((CsrAccessPlugin_logic_fsm_stateNext == CsrAccessPlugin_logic_fsm_WRITE) && (CsrAccessPlugin_logic_fsm_stateReg != CsrAccessPlugin_logic_fsm_WRITE));
   assign CsrAccessPlugin_logic_fsm_onEntry_COMPLETION = ((CsrAccessPlugin_logic_fsm_stateNext == CsrAccessPlugin_logic_fsm_COMPLETION) && (CsrAccessPlugin_logic_fsm_stateReg != CsrAccessPlugin_logic_fsm_COMPLETION));
+  assign early0_AesZknPlugin_logic_onData_rom_storage_1_en = (1'b1 && execute_ctrl2_down_isReady);
   always @(posedge clk) begin
     if(reset) begin
       MmuPlugin_logic_satp_mode <= 1'b0;
@@ -27972,6 +28283,7 @@ end
       execute_ctrl1_up_early0_IntAluPlugin_SEL_lane0 <= execute_ctrl0_down_early0_IntAluPlugin_SEL_lane0;
       execute_ctrl1_up_early0_BarrelShifterPlugin_SEL_lane0 <= execute_ctrl0_down_early0_BarrelShifterPlugin_SEL_lane0;
       execute_ctrl1_up_early0_BranchPlugin_SEL_lane0 <= execute_ctrl0_down_early0_BranchPlugin_SEL_lane0;
+      execute_ctrl1_up_early0_AesZknPlugin_SEL_lane0 <= execute_ctrl0_down_early0_AesZknPlugin_SEL_lane0;
       execute_ctrl1_up_early0_MulPlugin_SEL_lane0 <= execute_ctrl0_down_early0_MulPlugin_SEL_lane0;
       execute_ctrl1_up_early0_DivPlugin_SEL_lane0 <= execute_ctrl0_down_early0_DivPlugin_SEL_lane0;
       execute_ctrl1_up_early0_EnvPlugin_SEL_lane0 <= execute_ctrl0_down_early0_EnvPlugin_SEL_lane0;
@@ -28100,6 +28412,7 @@ end
       execute_ctrl2_up_integer_RS1_lane1 <= execute_ctrl1_down_integer_RS1_lane1;
       execute_ctrl2_up_integer_RS2_lane1 <= execute_ctrl1_down_integer_RS2_lane1;
       execute_ctrl2_up_early0_BranchPlugin_SEL_lane0 <= execute_ctrl1_down_early0_BranchPlugin_SEL_lane0;
+      execute_ctrl2_up_early0_AesZknPlugin_SEL_lane0 <= execute_ctrl1_down_early0_AesZknPlugin_SEL_lane0;
       execute_ctrl2_up_early0_MulPlugin_SEL_lane0 <= execute_ctrl1_down_early0_MulPlugin_SEL_lane0;
       execute_ctrl2_up_early0_DivPlugin_SEL_lane0 <= execute_ctrl1_down_early0_DivPlugin_SEL_lane0;
       execute_ctrl2_up_late0_IntAluPlugin_SEL_lane0 <= execute_ctrl1_down_late0_IntAluPlugin_SEL_lane0;
@@ -28269,6 +28582,7 @@ end
       execute_ctrl3_up_AguPlugin_SIZE_lane0 <= execute_ctrl2_down_AguPlugin_SIZE_lane0;
       execute_ctrl3_up_integer_RS2_lane0 <= execute_ctrl2_down_integer_RS2_lane0;
       execute_ctrl3_up_early0_BranchPlugin_SEL_lane0 <= execute_ctrl2_down_early0_BranchPlugin_SEL_lane0;
+      execute_ctrl3_up_early0_AesZknPlugin_SEL_lane0 <= execute_ctrl2_down_early0_AesZknPlugin_SEL_lane0;
       execute_ctrl3_up_early0_MulPlugin_SEL_lane0 <= execute_ctrl2_down_early0_MulPlugin_SEL_lane0;
       execute_ctrl3_up_late0_IntAluPlugin_SEL_lane0 <= execute_ctrl2_down_late0_IntAluPlugin_SEL_lane0;
       execute_ctrl3_up_late0_BarrelShifterPlugin_SEL_lane0 <= execute_ctrl2_down_late0_BarrelShifterPlugin_SEL_lane0;
@@ -28389,6 +28703,7 @@ end
       execute_ctrl3_up_late0_SrcPlugin_SRC2_lane0 <= execute_ctrl2_down_late0_SrcPlugin_SRC2_lane0;
       execute_ctrl3_up_late1_SrcPlugin_SRC1_lane1 <= execute_ctrl2_down_late1_SrcPlugin_SRC1_lane1;
       execute_ctrl3_up_late1_SrcPlugin_SRC2_lane1 <= execute_ctrl2_down_late1_SrcPlugin_SRC2_lane1;
+      execute_ctrl3_up_early0_AesZknPlugin_logic_onData_CALC_lane0 <= execute_ctrl2_down_early0_AesZknPlugin_logic_onData_CALC_lane0;
       execute_ctrl3_up_MMU_BYPASS_TRANSLATION_lane0 <= execute_ctrl2_down_MMU_BYPASS_TRANSLATION_lane0;
     end
     if(execute_ctrl3_down_isReady) begin
